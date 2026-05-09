@@ -7,7 +7,7 @@ abstract: "Passive cooling using extended surfaces is a widely used thermal mana
 keywords: ["Natural convection", "Fin array", "Thermal analysis", "Heat transfer enhancement", "Electronic cooling", "Optimum fin spacing"]
 thumbnail: "/assets/images/fineff.png"
 doi: ""
-pdf: ""
+pdf: "/assets/pdfs/article_3.pdf"
 ---
 
 # Thermal Analysis of Vertical Rectangular Fin Arrays Under Natural Convection Cooling
