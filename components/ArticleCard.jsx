@@ -14,9 +14,15 @@ export function ArticleCard({ article }) {
         <p className="mt-4 flex-1 text-sm leading-7 text-slate-600 dark:text-slate-300">{article.abstract}</p>
         <div className="mt-5 grid grid-cols-3 gap-2">
           <Link href={`/articles/${article.slug}`} className="rounded-md bg-primary px-3 py-2 text-center text-xs font-bold text-white transition hover:bg-accent">Read Article</Link>
-          <a href={article.pdfUrl || article.rawMarkdownUrl} className="inline-flex items-center justify-center gap-1 rounded-md border border-slate-200 px-3 py-2 text-xs font-bold text-primary transition hover:border-accent hover:text-accent dark:border-slate-700 dark:text-white">
-            <FileDown size={14} /> PDF
-          </a>
+          {article.pdfUrl ? (
+            <a href={article.pdfUrl} className="inline-flex items-center justify-center gap-1 rounded-md border border-slate-200 px-3 py-2 text-xs font-bold text-primary transition hover:border-accent hover:text-accent dark:border-slate-700 dark:text-white">
+              <FileDown size={14} /> PDF
+            </a>
+          ) : (
+            <span className="inline-flex items-center justify-center gap-1 rounded-md border border-slate-200 px-3 py-2 text-xs font-bold text-slate-400 dark:border-slate-700">
+              <FileDown size={14} /> PDF
+            </span>
+          )}
           <Link href={`/articles/${article.slug}#citation`} className="inline-flex items-center justify-center gap-1 rounded-md border border-slate-200 px-3 py-2 text-xs font-bold text-primary transition hover:border-accent hover:text-accent dark:border-slate-700 dark:text-white">
             <Quote size={14} /> Cite
           </Link>

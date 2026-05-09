@@ -1,8 +1,14 @@
+"use client";
+
+import { useState } from "react";
+
 export function ScientificThumbnail({ tone = "from-cyan-50 to-blue-100", compact = false, src = "", alt = "Scientific article thumbnail" }) {
-  if (src) {
+  const [failed, setFailed] = useState(false);
+
+  if (src && !failed) {
     return (
       <div className={`relative overflow-hidden rounded-md bg-slate-100 ${compact ? "h-36" : "h-64"}`}>
-        <img src={src} alt={alt} className="h-full w-full object-cover" />
+        <img src={src} alt={alt} className="h-full w-full object-cover" onError={() => setFailed(true)} />
         <div className="absolute inset-0 bg-gradient-to-t from-primary/18 to-transparent" />
       </div>
     );

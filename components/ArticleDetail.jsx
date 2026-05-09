@@ -31,7 +31,9 @@ export function ArticleDetail({ article, sourceStatus }) {
           </div>
 
           <div className="mt-7 flex flex-wrap gap-3">
-            <a href={article.pdfUrl || article.rawMarkdownUrl} className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-accent"><Download size={17} /> Download PDF</a>
+            {article.pdfUrl && (
+              <a href={article.pdfUrl} className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-accent"><Download size={17} /> Download PDF</a>
+            )}
             <a href="#citation" className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-primary transition hover:border-accent hover:text-accent dark:border-slate-700 dark:text-white">Cite</a>
             <a href={article.downloadMarkdownUrl} className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-primary transition hover:border-accent hover:text-accent dark:border-slate-700 dark:text-white"><FileCode2 size={17} /> Markdown</a>
             <a href={article.githubUrl} className="inline-flex items-center gap-2 rounded-md border border-slate-200 px-4 py-2.5 text-sm font-bold text-primary transition hover:border-accent hover:text-accent dark:border-slate-700 dark:text-white"><GitBranch size={17} /> Version</a>
@@ -52,7 +54,7 @@ export function ArticleDetail({ article, sourceStatus }) {
           <figure className="mt-8 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950">
             <ScientificThumbnail src={article.thumbnail} alt={article.title} />
             <figcaption className="border-t border-slate-200 px-5 py-3 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              Featured figure or thumbnail from the GitHub repository assets.
+              Featured figure or article thumbnail.
             </figcaption>
           </figure>
 
