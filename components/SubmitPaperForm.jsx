@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "@formspree/react";
 import { AlertCircle, CheckCircle2, Link2, Mail, Send, ShieldCheck } from "lucide-react";
 
 const categories = ["FEA", "CFD", "Composite Materials", "Robotics", "Renewable Energy", "Mathematics", "AI in Engineering"];
@@ -39,11 +40,26 @@ export function SubmitPaperForm() {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ state: "idle", message: "" });
+  const [formspreeState, submitToFormspree] = useForm("xlgzppdd");
 
   const editorialEmail = "desyngoresearch@gmail.com";
-  const formspreeEndpoint = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT || "";
 
   const abstractCount = useMemo(() => form.abstract.trim().split(/\s+/).filter(Boolean).length, [form.abstract]);
+
+  useEffect(() => {
+    if (formspreeState.succeeded) {
+      setForm(initialForm);
+      setStatus({
+        state: "success",
+        message: `Submission received. Details will be delivered to ${editorialEmail}.`,
+      });
+    } else if (formspreeState.errors) {
+      setStatus({
+        state: "error",
+        message: "Submission could not be sent. Please check the form details and try again.",
+      });
+    }
+  }, [formspreeState.errors, formspreeState.succeeded]);
 
   function updateField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
@@ -71,64 +87,34 @@ export function SubmitPaperForm() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
-    if (!formspreeEndpoint) {
-      setStatus({
-        state: "error",
-        message: "Form endpoint is not configured. Add NEXT_PUBLIC_FORMSPREE_ENDPOINT in Vercel after creating the Formspree form.",
-      });
-      return;
-    }
-
     setStatus({ state: "loading", message: "Submitting manuscript details..." });
 
-    try {
-      const response = await fetch(formspreeEndpoint, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          _subject: `JSCR Submission: ${form.title}`,
-          destination: editorialEmail,
-          article_title: form.title,
-          article_type: form.articleType,
-          category: form.category,
-          authors: form.authors,
-          corresponding_author: form.correspondingAuthor,
-          contact_email: form.email,
-          phone: form.phone,
-          affiliation: form.affiliation,
-          orcid: form.orcid,
-          doi_or_preprint: form.doi,
-          keywords: form.keywords,
-          manuscript_link: form.manuscriptUrl,
-          pdf_link: form.pdfUrl,
-          abstract: form.abstract,
-          editorial_notes: form.comments,
-          open_access_requested: form.openAccess ? "Yes" : "No",
-          previous_peer_review: form.peerReviewed ? "Yes" : "No",
-          declaration_confirmed: form.ethics ? "Yes" : "No",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Submission service rejected the request.");
-      }
-
-      setForm(initialForm);
-      setStatus({
-        state: "success",
-        message: `Submission received. Details will be delivered to ${editorialEmail}.`,
-      });
-    } catch (error) {
-      setStatus({
-        state: "error",
-        message: "Submission could not be sent. Please check the form endpoint configuration and try again.",
-      });
-    }
+    await submitToFormspree({
+      _subject: `JSCR Submission: ${form.title}`,
+      destination: editorialEmail,
+      article_title: form.title,
+      article_type: form.articleType,
+      category: form.category,
+      authors: form.authors,
+      corresponding_author: form.correspondingAuthor,
+      email: form.email,
+      contact_email: form.email,
+      phone: form.phone,
+      institution_or_organization: form.affiliation,
+      orcid: form.orcid || "Not provided",
+      doi_or_preprint: form.doi || "Not provided",
+      keywords: form.keywords || "Not provided",
+      manuscript_link: form.manuscriptUrl,
+      pdf_link: form.pdfUrl || "Not provided",
+      abstract: form.abstract || "Not provided",
+      editorial_notes: form.comments || "None",
+      open_access_requested: form.openAccess ? "Yes" : "No",
+      previous_peer_review: form.peerReviewed ? "Yes" : "No",
+      declaration_confirmed: form.ethics ? "Yes" : "No",
+    });
   }
 
+  const isSubmitting = status.state === "loading" || formspreeState.submitting;
   return (
     <form onSubmit={handleSubmit} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-900">
       <div className="border-b border-slate-200 bg-slate-50 px-6 py-5 dark:border-slate-800 dark:bg-slate-950">
@@ -161,57 +147,57 @@ export function SubmitPaperForm() {
       <div className="grid gap-6 p-6 lg:grid-cols-2">
         <label className="lg:col-span-2">
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Article title</span>
-          <input className={fieldClass(errors.title)} value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Finite Element Analysis of FRP Cooling Towers" />
+          <input name="article_title" className={fieldClass(errors.title)} value={form.title} onChange={(event) => updateField("title", event.target.value)} placeholder="Finite Element Analysis of FRP Cooling Towers" />
           {errors.title && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.title}</span>}
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Article type</span>
-          <select className={fieldClass()} value={form.articleType} onChange={(event) => updateField("articleType", event.target.value)}>
+          <select name="article_type" className={fieldClass()} value={form.articleType} onChange={(event) => updateField("articleType", event.target.value)}>
             {articleTypes.map((type) => <option key={type}>{type}</option>)}
           </select>
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Research category</span>
-          <select className={fieldClass()} value={form.category} onChange={(event) => updateField("category", event.target.value)}>
+          <select name="category" className={fieldClass()} value={form.category} onChange={(event) => updateField("category", event.target.value)}>
             {categories.map((category) => <option key={category}>{category}</option>)}
           </select>
         </label>
 
         <label className="lg:col-span-2">
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Authors</span>
-          <input className={fieldClass(errors.authors)} value={form.authors} onChange={(event) => updateField("authors", event.target.value)} placeholder="Renjith R, A. Kumar, S. Menon" />
+          <input name="authors" className={fieldClass(errors.authors)} value={form.authors} onChange={(event) => updateField("authors", event.target.value)} placeholder="Renjith R, A. Kumar, S. Menon" />
           {errors.authors && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.authors}</span>}
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Corresponding author</span>
-          <input className={fieldClass(errors.correspondingAuthor)} value={form.correspondingAuthor} onChange={(event) => updateField("correspondingAuthor", event.target.value)} placeholder="Renjith R" />
+          <input name="corresponding_author" className={fieldClass(errors.correspondingAuthor)} value={form.correspondingAuthor} onChange={(event) => updateField("correspondingAuthor", event.target.value)} placeholder="Renjith R" />
           {errors.correspondingAuthor && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.correspondingAuthor}</span>}
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Email</span>
-          <input type="email" className={fieldClass(errors.email)} value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="author@example.com" />
+          <input name="email" type="email" className={fieldClass(errors.email)} value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="author@example.com" />
           {errors.email && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.email}</span>}
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Phone number</span>
-          <input type="tel" className={fieldClass(errors.phone)} value={form.phone} onChange={(event) => updateField("phone", event.target.value)} placeholder="+91 98765 43210" />
+          <input name="phone" type="tel" className={fieldClass(errors.phone)} value={form.phone} onChange={(event) => updateField("phone", event.target.value)} placeholder="+91 98765 43210" />
           {errors.phone && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.phone}</span>}
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Institution / organization</span>
-          <input className={fieldClass(errors.affiliation)} value={form.affiliation} onChange={(event) => updateField("affiliation", event.target.value)} placeholder="Department, University / Organization" />
+          <input name="institution_or_organization" className={fieldClass(errors.affiliation)} value={form.affiliation} onChange={(event) => updateField("affiliation", event.target.value)} placeholder="Department, University / Organization" />
           {errors.affiliation && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.affiliation}</span>}
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">ORCID</span>
-          <input className={fieldClass()} value={form.orcid} onChange={(event) => updateField("orcid", event.target.value)} placeholder="0000-0000-0000-0000" />
+          <input name="orcid" className={fieldClass()} value={form.orcid} onChange={(event) => updateField("orcid", event.target.value)} placeholder="0000-0000-0000-0000" />
         </label>
 
         <label className="lg:col-span-2">
@@ -219,30 +205,30 @@ export function SubmitPaperForm() {
             Abstract / short summary
             <span className="text-xs font-semibold text-slate-500">{abstractCount} words</span>
           </span>
-          <textarea rows={6} className={fieldClass(errors.abstract)} value={form.abstract} onChange={(event) => updateField("abstract", event.target.value)} placeholder="Summarize the paper briefly." />
+          <textarea name="abstract" rows={6} className={fieldClass(errors.abstract)} value={form.abstract} onChange={(event) => updateField("abstract", event.target.value)} placeholder="Summarize the paper briefly." />
           {errors.abstract && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.abstract}</span>}
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Keywords</span>
-          <input className={fieldClass(errors.keywords)} value={form.keywords} onChange={(event) => updateField("keywords", event.target.value)} placeholder="FEA, FRP, Cooling Tower, Composite Materials" />
+          <input name="keywords" className={fieldClass(errors.keywords)} value={form.keywords} onChange={(event) => updateField("keywords", event.target.value)} placeholder="FEA, FRP, Cooling Tower, Composite Materials" />
           {errors.keywords && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.keywords}</span>}
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">DOI / preprint link</span>
-          <input className={fieldClass()} value={form.doi} onChange={(event) => updateField("doi", event.target.value)} placeholder="10.1000/example or https://..." />
+          <input name="doi_or_preprint" className={fieldClass()} value={form.doi} onChange={(event) => updateField("doi", event.target.value)} placeholder="10.1000/example or https://..." />
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Markdown / repository URL</span>
-          <input className={fieldClass(errors.manuscriptUrl)} value={form.manuscriptUrl} onChange={(event) => updateField("manuscriptUrl", event.target.value)} placeholder="https://github.com/.../articles/paper.md" />
+          <input name="manuscript_link" className={fieldClass(errors.manuscriptUrl)} value={form.manuscriptUrl} onChange={(event) => updateField("manuscriptUrl", event.target.value)} placeholder="https://github.com/.../articles/paper.md" />
           {errors.manuscriptUrl && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.manuscriptUrl}</span>}
         </label>
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">PDF URL</span>
-          <input className={fieldClass()} value={form.pdfUrl} onChange={(event) => updateField("pdfUrl", event.target.value)} placeholder="https://..." />
+          <input name="pdf_link" className={fieldClass()} value={form.pdfUrl} onChange={(event) => updateField("pdfUrl", event.target.value)} placeholder="https://..." />
         </label>
 
         <div className="lg:col-span-2 grid gap-4 rounded-md border border-dashed border-slate-300 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950 md:grid-cols-[auto_1fr]">
@@ -262,20 +248,20 @@ export function SubmitPaperForm() {
 
         <label className="lg:col-span-2">
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Editorial notes</span>
-          <textarea rows={4} className={fieldClass()} value={form.comments} onChange={(event) => updateField("comments", event.target.value)} placeholder="Conflicts of interest, suggested reviewers, repository access notes, or special handling instructions." />
+          <textarea name="editorial_notes" rows={4} className={fieldClass()} value={form.comments} onChange={(event) => updateField("comments", event.target.value)} placeholder="Conflicts of interest, suggested reviewers, repository access notes, or special handling instructions." />
         </label>
 
         <div className="lg:col-span-2 grid gap-3 rounded-md border border-slate-200 p-4 dark:border-slate-700">
           <label className="flex items-start gap-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
-            <input type="checkbox" checked={form.openAccess} onChange={(event) => updateField("openAccess", event.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-accent focus:ring-accent" />
+            <input name="open_access_requested" type="checkbox" checked={form.openAccess} onChange={(event) => updateField("openAccess", event.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-accent focus:ring-accent" />
             Request open access publication consideration.
           </label>
           <label className="flex items-start gap-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
-            <input type="checkbox" checked={form.peerReviewed} onChange={(event) => updateField("peerReviewed", event.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-accent focus:ring-accent" />
+            <input name="previous_peer_review" type="checkbox" checked={form.peerReviewed} onChange={(event) => updateField("peerReviewed", event.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-accent focus:ring-accent" />
             This manuscript has previous peer review history or preprint discussion.
           </label>
           <label className="flex items-start gap-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
-            <input type="checkbox" checked={form.ethics} onChange={(event) => updateField("ethics", event.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-accent focus:ring-accent" />
+            <input name="declaration_confirmed" type="checkbox" checked={form.ethics} onChange={(event) => updateField("ethics", event.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-accent focus:ring-accent" />
             I confirm this submission is original, all authors approve submission, and any conflicts are disclosed.
           </label>
           {errors.ethics && <span className="text-xs font-semibold text-red-600">{errors.ethics}</span>}
@@ -287,8 +273,8 @@ export function SubmitPaperForm() {
           <Mail size={18} className="text-accent" />
           Submissions route to {editorialEmail}
         </div>
-        <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-accent">
-          {status.state === "loading" ? "Submitting..." : "Submit Paper"} <Send size={18} />
+        <button type="submit" disabled={isSubmitting} className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70">
+          {isSubmitting ? "Submitting..." : "Submit Paper"} <Send size={18} />
         </button>
       </div>
     </form>
