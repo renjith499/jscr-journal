@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "@formspree/react";
+import { useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, Link2, Mail, Send, ShieldCheck } from "lucide-react";
 
 const categories = ["FEA", "CFD", "Composite Materials", "Robotics", "Renewable Energy", "Mathematics", "AI in Engineering"];
@@ -40,26 +39,11 @@ export function SubmitPaperForm() {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ state: "idle", message: "" });
-  const [formspreeState, submitToFormspree] = useForm("xlgzppdd");
 
   const editorialEmail = "desyngoresearch@gmail.com";
+  const formspreeEndpoint = "https://formspree.io/f/xlgzppdd";
 
   const abstractCount = useMemo(() => form.abstract.trim().split(/\s+/).filter(Boolean).length, [form.abstract]);
-
-  useEffect(() => {
-    if (formspreeState.succeeded) {
-      setForm(initialForm);
-      setStatus({
-        state: "success",
-        message: `Submission received. Details will be delivered to ${editorialEmail}.`,
-      });
-    } else if (formspreeState.errors) {
-      setStatus({
-        state: "error",
-        message: "Submission could not be sent. Please check the form details and try again.",
-      });
-    }
-  }, [formspreeState.errors, formspreeState.succeeded]);
 
   function updateField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
@@ -88,32 +72,55 @@ export function SubmitPaperForm() {
 
     setStatus({ state: "loading", message: "Submitting manuscript details..." });
 
-    await submitToFormspree({
-      _subject: `JSCR Submission: ${form.title}`,
-      destination: editorialEmail,
-      article_title: form.title,
-      article_type: form.articleType,
-      category: form.category,
-      authors: form.authors,
-      corresponding_author: form.correspondingAuthor,
-      email: form.email,
-      contact_email: form.email,
-      phone: form.phone,
-      institution_or_organization: form.affiliation,
-      orcid: form.orcid || "Not provided",
-      doi_or_preprint: form.doi || "Not provided",
-      keywords: form.keywords || "Not provided",
-      manuscript_link: form.manuscriptUrl || "Not provided",
-      pdf_link: form.pdfUrl || "Not provided",
-      abstract: form.abstract || "Not provided",
-      editorial_notes: form.comments || "None",
-      open_access_requested: form.openAccess ? "Yes" : "No",
-      previous_peer_review: form.peerReviewed ? "Yes" : "No",
-      declaration_confirmed: form.ethics ? "Yes" : "No",
-    });
+    try {
+      const response = await fetch(formspreeEndpoint, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          _subject: `JSCR Submission: ${form.title}`,
+          article_title: form.title,
+          article_type: form.articleType,
+          category: form.category,
+          authors: form.authors,
+          corresponding_author: form.correspondingAuthor,
+          email: form.email,
+          contact_email: form.email,
+          phone: form.phone,
+          institution_or_organization: form.affiliation,
+          orcid: form.orcid || "Not provided",
+          doi_or_preprint: form.doi || "Not provided",
+          keywords: form.keywords || "Not provided",
+          manuscript_link: form.manuscriptUrl || "Not provided",
+          pdf_link: form.pdfUrl || "Not provided",
+          abstract: form.abstract || "Not provided",
+          editorial_notes: form.comments || "None",
+          open_access_requested: form.openAccess ? "Yes" : "No",
+          previous_peer_review: form.peerReviewed ? "Yes" : "No",
+          declaration_confirmed: form.ethics ? "Yes" : "No",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Formspree rejected the submission.");
+      }
+
+      setForm(initialForm);
+      setStatus({
+        state: "success",
+        message: `Submission received. Details will be delivered to ${editorialEmail}.`,
+      });
+    } catch (error) {
+      setStatus({
+        state: "error",
+        message: "Submission could not be sent. Please check the internet connection and Formspree form settings, then try again.",
+      });
+    }
   }
 
-  const isSubmitting = status.state === "loading" || formspreeState.submitting;
+  const isSubmitting = status.state === "loading";
   return (
     <form onSubmit={handleSubmit} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-900">
       <div className="border-b border-slate-200 bg-slate-50 px-6 py-5 dark:border-slate-800 dark:bg-slate-950">
