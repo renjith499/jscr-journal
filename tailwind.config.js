@@ -1,10 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: "class",
   content: [
     "./app/**/*.{js,jsx}",
     "./components/**/*.{js,jsx}",
     "./lib/**/*.{js,jsx}",
+<<<<<<< HEAD
     "./articles/**/*.{js,jsx}",
+=======
+    "./articles/**/*.{md,mdx}",
+>>>>>>> 57859ea (Improve professional JSCR website UI and fix styling)
   ],
   theme: {
     extend: {

@@ -1,6 +1,6 @@
 import { Filter, Search } from "lucide-react";
 
-const categories = ["FEA", "CFD", "Composite Materials", "Robotics", "Renewable Energy", "Mathematics", "AI in Engineering"];
+const categories = ["FEA", "CFD", "Composites", "Robotics", "Renewable Energy", "AI in Engineering"];
 
 export function SearchFilters() {
   return (

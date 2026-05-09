@@ -6,10 +6,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "latest",
+    "autoprefixer": "^10.4.22",
     "gray-matter": "latest",
     "github-slugger": "latest",
     "katex": "latest",
+    "lucide-react": "latest",
+    "next": "latest",
+    "postcss": "^8.5.6",
     "react": "latest",
     "react-dom": "latest",
     "react-markdown": "latest",
@@ -17,11 +20,7 @@
     "rehype-katex": "latest",
     "remark-gfm": "latest",
     "remark-math": "latest",
-    "next": "latest",
-    "tailwindcss": "latest",
-    "postcss": "latest",
-    "autoprefixer": "latest",
-    "lucide-react": "latest"
+    "tailwindcss": "^3.4.17"
   },
   "type": "module",
   "devDependencies": {}

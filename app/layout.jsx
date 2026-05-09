@@ -2,8 +2,8 @@ import "./globals.css";
 import { SiteShell } from "@/components/SiteShell";
 
 export const metadata = {
-  title: "EngiScholar | Engineering & Scientific Research Platform",
-  description: "A GitHub-powered platform for scientific and engineering articles.",
+  title: "JSCR | Journal of Scientific Computing & Research",
+  description: "A professional GitHub-powered scientific publishing platform for engineering and computational research.",
 };
 
 export default function RootLayout({ children }) {
