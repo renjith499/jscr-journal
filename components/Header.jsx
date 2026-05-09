@@ -9,7 +9,7 @@ export function Header({ darkMode, setDarkMode, open, setOpen }) {
     ["Articles", "/#articles"],
     ["Journals", "/#journals"],
     ["Categories", "/#categories"],
-    ["Submit Paper", "/#submit-paper"],
+    ["Submit Paper", "/submit-paper"],
     ["About", "/#about"],
   ];
 
@@ -42,9 +42,9 @@ export function Header({ darkMode, setDarkMode, open, setOpen }) {
           <button onClick={() => setDarkMode(!darkMode)} className="rounded-md p-2.5 text-primary transition hover:bg-slate-100 hover:text-accent dark:text-slate-200 dark:hover:bg-slate-800" aria-label="Toggle theme">
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <a href="/#submit-paper" className="rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-accent">
+          <Link href="/submit-paper" className="rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-accent">
             Submit Manuscript
-          </a>
+          </Link>
         </div>
 
         <button onClick={() => setOpen(!open)} className="rounded-md p-2 text-primary dark:text-white lg:hidden" aria-label="Open menu">

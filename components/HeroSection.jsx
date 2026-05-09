@@ -19,7 +19,7 @@ export function HeroSection() {
             <a href="#articles" className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3.5 text-sm font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-accent">
               Explore Articles <ChevronRight size={18} />
             </a>
-            <a href="#submit-paper" className="inline-flex items-center justify-center gap-2 rounded-md border border-primary/25 bg-white px-6 py-3.5 text-sm font-bold text-primary shadow-sm transition hover:-translate-y-0.5 hover:border-accent hover:text-accent dark:bg-slate-900 dark:text-white">
+            <a href="/submit-paper" className="inline-flex items-center justify-center gap-2 rounded-md border border-primary/25 bg-white px-6 py-3.5 text-sm font-bold text-primary shadow-sm transition hover:-translate-y-0.5 hover:border-accent hover:text-accent dark:bg-slate-900 dark:text-white">
               Submit Paper <FileText size={18} />
             </a>
           </div>
