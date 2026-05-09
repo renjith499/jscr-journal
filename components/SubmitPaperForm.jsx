@@ -75,7 +75,6 @@ export function SubmitPaperForm() {
     if (!form.phone.trim()) nextErrors.phone = "Phone number is required.";
     if (!form.affiliation.trim()) nextErrors.affiliation = "Institution or organization is required.";
     if (form.abstract.trim() && abstractCount < 25) nextErrors.abstract = "Abstract should be at least 25 words if provided.";
-    if (!form.manuscriptUrl.trim()) nextErrors.manuscriptUrl = "Provide a manuscript link.";
     if (!form.ethics) nextErrors.ethics = "Confirm the submission declaration.";
     return nextErrors;
   }
@@ -104,7 +103,7 @@ export function SubmitPaperForm() {
       orcid: form.orcid || "Not provided",
       doi_or_preprint: form.doi || "Not provided",
       keywords: form.keywords || "Not provided",
-      manuscript_link: form.manuscriptUrl,
+      manuscript_link: form.manuscriptUrl || "Not provided",
       pdf_link: form.pdfUrl || "Not provided",
       abstract: form.abstract || "Not provided",
       editorial_notes: form.comments || "None",
@@ -221,7 +220,7 @@ export function SubmitPaperForm() {
         </label>
 
         <label>
-          <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Markdown / repository URL</span>
+          <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Paper / manuscript link optional</span>
           <input name="manuscript_link" className={fieldClass(errors.manuscriptUrl)} value={form.manuscriptUrl} onChange={(event) => updateField("manuscriptUrl", event.target.value)} placeholder="https://github.com/.../articles/paper.md" />
           {errors.manuscriptUrl && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.manuscriptUrl}</span>}
         </label>
@@ -237,8 +236,8 @@ export function SubmitPaperForm() {
               <Link2 size={22} />
             </div>
             <div>
-              <div className="font-bold text-primary dark:text-white">Manuscript link only</div>
-              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Upload the manuscript to Google Drive, Dropbox, OneDrive, GitHub, or another repository and paste the share link above. No file upload is required on this website.</p>
+              <div className="font-bold text-primary dark:text-white">No file upload required</div>
+              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Authors can submit the form with contact and article details only. A manuscript, preprint, or repository link can be added later if available.</p>
             </div>
           </div>
           <div className="rounded-md border border-cyan-200 bg-white p-4 text-sm font-semibold leading-6 text-primary dark:border-cyan-900 dark:bg-slate-900 dark:text-cyan-100">

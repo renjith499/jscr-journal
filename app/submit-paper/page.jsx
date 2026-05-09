@@ -17,7 +17,7 @@ export default function SubmitPaperPage() {
               Submit a scientific or engineering manuscript
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-              Share article metadata, author details, abstract, keywords, and manuscript links for editorial screening and publication preparation.
+              Share article metadata, author details, contact information, abstract, and optional paper links for editorial screening.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3 lg:pt-8">
