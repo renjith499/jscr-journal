@@ -1,0 +1,118 @@
+---
+title: "Finite Element Analysis of FRP Cooling Tower Structural Members Under Wind Loading"
+authors:
+  - "Renjith Ravindran"
+  - "A. Kumar"
+date: "2026-05-09"
+category: "Structural Engineering"
+journal: "JSCR Journal of Scientific Computing & Research"
+volume: "1"
+issue: "1"
+pages: "1-12"
+doi: "10.5250/jscr.2026.001"
+keywords:
+  - "FEA"
+  - "FRP"
+  - "Cooling Tower"
+  - "Wind Analysis"
+  - "Structural Engineering"
+thumbnail: "/images/frp-cooling-tower.jpg"
+abstract: "This study investigates the structural behaviour of Fiber Reinforced Polymer (FRP) cooling tower members subjected to wind loading using finite element analysis. The objective of the study is to evaluate stress distribution, deformation characteristics, and structural safety under critical environmental conditions. Numerical simulations were carried out using ANSYS-based finite element methods, and the obtained results demonstrate the suitability of FRP members for lightweight industrial cooling tower applications."
+---
+
+# Introduction
+
+Fiber Reinforced Polymer (FRP) structures are increasingly used in industrial cooling towers because of their high corrosion resistance, lightweight characteristics, and favorable strength-to-weight ratio. Compared with conventional steel structures, FRP systems provide enhanced durability in humid and chemically aggressive environments.
+
+In cooling tower applications, wind loading plays a significant role in determining the structural integrity of support members and bracing systems. Therefore, numerical simulation methods such as Finite Element Analysis (FEA) are commonly employed to evaluate stresses, deflections, and failure-prone regions before fabrication and installation.
+
+This paper presents a finite element investigation of FRP structural members subjected to wind loading conditions based on engineering design standards.
+
+# Methodology
+
+## Geometry Preparation
+
+The cooling tower structural members were modeled using three-dimensional beam and shell elements. The geometry includes:
+
+- Vertical columns
+- Horizontal bracings
+- Diagonal stiffeners
+- Joint connections
+
+## Material Properties
+
+The FRP material properties used in the analysis are summarized below.
+
+| Property | Value |
+|---|---|
+| Elastic Modulus | 23 GPa |
+| Density | 1850 kg/m³ |
+| Poisson Ratio | 0.28 |
+| Tensile Strength | 240 MPa |
+
+## Boundary Conditions
+
+The base supports were constrained in all translational degrees of freedom. Wind loads were applied as distributed pressure loads on exposed surfaces.
+
+# Governing Equation
+
+The stress generated in the structural member is calculated using:
+
+$$
+\sigma = \frac{F}{A}
+$$
+
+where:
+
+- \( \sigma \) = normal stress
+- \( F \) = applied force
+- \( A \) = cross-sectional area
+
+# Mesh Convergence Study
+
+A mesh convergence study was conducted to ensure the numerical accuracy of the finite element model. Different mesh sizes were considered, and the corresponding stress results were compared.
+
+| Number of Elements | Maximum Stress (MPa) |
+|---|---|
+| 12,500 | 112 |
+| 25,000 | 118 |
+| 48,000 | 119 |
+| 72,000 | 119.5 |
+
+The results indicate that the solution converges beyond approximately 48,000 elements.
+
+# Results and Discussion
+
+The stress contours indicate that the highest stresses are concentrated near the joint regions and support interfaces. The maximum equivalent stress observed was within the allowable limit of the FRP material.
+
+The deformation contours show moderate lateral displacement under peak wind loading conditions. The results confirm that the proposed FRP structural configuration satisfies the design requirements.
+
+## Key Observations
+
+- Maximum deformation occurred near unsupported bracing regions.
+- Joint regions experienced localized stress concentration.
+- Structural response remained within allowable limits.
+- FRP members demonstrated excellent stiffness-to-weight performance.
+
+# Conclusion
+
+A finite element analysis of FRP cooling tower structural members under wind loading was successfully performed. The study demonstrates that FRP structures provide a reliable and lightweight alternative for industrial cooling tower applications.
+
+The obtained results confirm that:
+
+- Structural stresses remain within allowable limits.
+- Deformation levels are acceptable.
+- The designed FRP members are structurally safe under the considered loading conditions.
+
+Future work may include:
+- dynamic wind analysis
+- fatigue assessment
+- experimental validation
+- nonlinear joint behaviour studies
+
+# References
+
+1. Gibson, R. F., *Principles of Composite Material Mechanics*, CRC Press, 2016.
+2. ANSYS Mechanical User Guide, ANSYS Inc.
+3. CTI Standard 137, Cooling Technology Institute.
+4. IS 875 Part 3: Wind Loads on Structures.
