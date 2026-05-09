@@ -16,13 +16,6 @@ export default async function HomePage() {
     <>
       <HeroSection />
       <SearchFilters />
-      {!result.ok && (
-        <section className="bg-white px-5 py-4 dark:bg-slate-900">
-          <div className="mx-auto max-w-7xl rounded-md border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900">
-            GitHub articles are not configured or could not be loaded. Showing bundled sample articles. Configure `.env.local` with your repository details.
-          </div>
-        </section>
-      )}
       <FeaturedArticle article={featured} />
       <ArticleGrid articles={articles} />
     </>

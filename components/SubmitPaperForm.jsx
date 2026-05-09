@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertCircle, CheckCircle2, Link2, Mail, Send, ShieldCheck } from "lucide-react";
+import { AlertCircle, CheckCircle2, Link2, Send, ShieldCheck } from "lucide-react";
 
 const categories = ["FEA", "CFD", "Composite Materials", "Robotics", "Renewable Energy", "Mathematics", "AI in Engineering"];
 const articleTypes = ["Research Article", "Technical Report", "Review Paper", "Case Study", "Short Communication"];
@@ -237,7 +237,7 @@ export function SubmitPaperForm() {
           <input name="pdf_link" className={fieldClass()} value={form.pdfUrl} onChange={(event) => updateField("pdfUrl", event.target.value)} placeholder="https://..." />
         </label>
 
-        <div className="lg:col-span-2 grid gap-4 rounded-md border border-dashed border-slate-300 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950 md:grid-cols-[auto_1fr]">
+        <div className="lg:col-span-2 rounded-md border border-dashed border-slate-300 bg-slate-50 p-5 dark:border-slate-700 dark:bg-slate-950">
           <div className="flex gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-cyan-100 text-primary dark:bg-cyan-950 dark:text-cyan-100">
               <Link2 size={22} />
@@ -246,9 +246,6 @@ export function SubmitPaperForm() {
               <div className="font-bold text-primary dark:text-white">No file upload required</div>
               <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Authors can submit the form with contact and article details only. A manuscript, preprint, or repository link can be added later if available.</p>
             </div>
-          </div>
-          <div className="rounded-md border border-cyan-200 bg-white p-4 text-sm font-semibold leading-6 text-primary dark:border-cyan-900 dark:bg-slate-900 dark:text-cyan-100">
-            Submissions are sent directly through the website form to the editorial inbox configured in Formspree.
           </div>
         </div>
 
@@ -274,11 +271,7 @@ export function SubmitPaperForm() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 dark:border-slate-800 dark:bg-slate-950 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
-          <Mail size={18} className="text-accent" />
-          Submissions route to {editorialEmail}
-        </div>
+      <div className="flex justify-end border-t border-slate-200 bg-slate-50 px-6 py-5 dark:border-slate-800 dark:bg-slate-950">
         <button type="submit" disabled={isSubmitting} className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-70">
           {isSubmitting ? "Submitting..." : "Submit Paper"} <Send size={18} />
         </button>
