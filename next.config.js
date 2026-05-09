@@ -1,10 +1,17 @@
 /** @type {import('next').NextConfig} */
+const isGithubPages = process.env.GITHUB_PAGES === "true";
+
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      { protocol: "https", hostname: "raw.githubusercontent.com" },
+      { protocol: "https", hostname: "github.com" },
+      { protocol: "https", hostname: "images.unsplash.com" },
+    ],
   },
+  output: isGithubPages ? "export" : undefined,
+  trailingSlash: isGithubPages,
   headers: async () => {
     return [
       {
