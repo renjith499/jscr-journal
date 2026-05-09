@@ -3,7 +3,7 @@ export function Footer() {
     "About the platform": ["GitHub CMS", "Editorial board", "Indexing", "Open access"],
     "Article categories": ["FEA", "CFD", "Robotics", "Renewable energy"],
     "Submission guidelines": ["Markdown frontmatter", "Peer review", "Ethics", "Templates"],
-    Contact: ["support@engischolar.org", "Institutional access", "Partnerships", "Help center"],
+    Contact: ["research@desyngo.com", "JSCR editorial office", "Partnerships", "Submission support"],
   };
 
   return (
@@ -19,7 +19,7 @@ export function Footer() {
         ))}
       </div>
       <div className="border-t border-white/10 px-5 py-5 text-center text-sm text-blue-100">
-        Copyright 2026 EngiScholar Research Platform. All rights reserved.
+        Copyright 2026 JSCR Research Platform. All rights reserved.
       </div>
     </footer>
   );

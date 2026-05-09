@@ -40,7 +40,7 @@ export function SubmitPaperForm() {
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ state: "idle", message: "" });
 
-  const editorialEmail = "desyngoresearch@gmail.com";
+  const editorialEmail = "research@desyngo.com";
   const formspreeEndpoint = "https://formspree.io/f/xlgzppdd";
 
   const abstractCount = useMemo(() => form.abstract.trim().split(/\s+/).filter(Boolean).length, [form.abstract]);

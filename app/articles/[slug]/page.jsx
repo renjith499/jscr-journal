@@ -17,11 +17,11 @@ export async function generateMetadata({ params }) {
   const article = result.ok ? result.article : fallbackArticles.find((item) => item.slug === slug);
 
   if (!article) {
-    return { title: "Article not found | EngiScholar" };
+    return { title: "Article not found | JSCR" };
   }
 
   return {
-    title: `${article.title} | EngiScholar`,
+    title: `${article.title} | JSCR`,
     description: article.abstract,
   };
 }
