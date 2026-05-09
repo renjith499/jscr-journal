@@ -16,7 +16,7 @@ keywords:
   - "Cooling Tower"
   - "Wind Analysis"
   - "Structural Engineering"
-thumbnail: "/images/frp-cooling-tower.jpg"
+thumbnail: "/images/cad-engineering-design.jpg"
 abstract: "This study investigates the structural behaviour of Fiber Reinforced Polymer (FRP) cooling tower members subjected to wind loading using finite element analysis. The objective of the study is to evaluate stress distribution, deformation characteristics, and structural safety under critical environmental conditions. Numerical simulations were carried out using ANSYS-based finite element methods, and the obtained results demonstrate the suitability of FRP members for lightweight industrial cooling tower applications."
 ---
 

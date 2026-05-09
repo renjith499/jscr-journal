@@ -12,7 +12,7 @@ const initialArticle = {
   category: "FEA",
   abstract: "",
   keywords: "",
-  thumbnail: "/assets/images/example.jpg",
+  thumbnail: "/images/cad-engineering-design.jpg",
   doi: "",
   pdf: "",
   introduction: "",
@@ -148,7 +148,7 @@ export function MarkdownBuilder() {
           <div className="grid gap-5 md:grid-cols-2">
             <label>
               <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Thumbnail path</span>
-              <input className={inputClass()} value={article.thumbnail} onChange={(event) => updateField("thumbnail", event.target.value)} placeholder="/assets/images/example.jpg" />
+              <input className={inputClass()} value={article.thumbnail} onChange={(event) => updateField("thumbnail", event.target.value)} placeholder="/images/cad-engineering-design.jpg" />
             </label>
             <label>
               <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">DOI</span>
