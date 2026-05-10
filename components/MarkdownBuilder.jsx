@@ -14,7 +14,7 @@ const initialArticle = {
   keywords: "",
   thumbnail: "/images/cad-engineering-design.jpg",
   doi: "",
-  pdf: "",
+  pdf: "/pdfs/article-file.pdf",
   introduction: "",
   methodology: "",
   results: "",
@@ -109,6 +109,11 @@ export function MarkdownBuilder() {
         <div className="border-b border-slate-200 bg-slate-50 px-6 py-5 dark:border-slate-800 dark:bg-slate-950">
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">Article Markdown Builder</p>
           <h2 className="mt-2 text-2xl font-extrabold text-primary dark:text-white">Create upload-ready JSCR markdown</h2>
+          <div className="mt-4 grid gap-2 rounded-md border border-cyan-200 bg-white p-4 text-sm font-semibold leading-6 text-primary dark:border-cyan-900 dark:bg-slate-900 dark:text-cyan-100">
+            <p>Upload generated markdown files to <span className="font-extrabold">articles/</span>.</p>
+            <p>Upload article images to <span className="font-extrabold">public/images/</span> and use paths like <span className="font-extrabold">/images/figure.png</span>.</p>
+            <p>Upload PDFs to <span className="font-extrabold">public/pdfs/</span> and use paths like <span className="font-extrabold">/pdfs/article.pdf</span>.</p>
+          </div>
         </div>
 
         <div className="grid gap-5 p-6">
@@ -149,6 +154,7 @@ export function MarkdownBuilder() {
             <label>
               <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Thumbnail path</span>
               <input className={inputClass()} value={article.thumbnail} onChange={(event) => updateField("thumbnail", event.target.value)} placeholder="/images/cad-engineering-design.jpg" />
+              <span className="mt-2 block text-xs font-semibold text-slate-500 dark:text-slate-400">Use /images/file-name.ext after uploading the image to public/images.</span>
             </label>
             <label>
               <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">DOI</span>
@@ -158,7 +164,8 @@ export function MarkdownBuilder() {
 
           <label>
             <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">PDF path or URL</span>
-            <input className={inputClass()} value={article.pdf} onChange={(event) => updateField("pdf", event.target.value)} placeholder="/assets/pdfs/article.pdf" />
+            <input className={inputClass()} value={article.pdf} onChange={(event) => updateField("pdf", event.target.value)} placeholder="/pdfs/article.pdf" />
+            <span className="mt-2 block text-xs font-semibold text-slate-500 dark:text-slate-400">Use /pdfs/file-name.pdf after uploading the PDF to public/pdfs. Leave blank if no PDF is available.</span>
           </label>
 
           {[
