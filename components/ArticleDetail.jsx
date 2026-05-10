@@ -48,9 +48,6 @@ export function ArticleDetail({ article, sourceStatus }) {
 
           <figure className="mt-8 overflow-hidden rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950">
             <ScientificThumbnail src={article.thumbnail} alt={article.title} />
-            <figcaption className="border-t border-slate-200 px-5 py-3 text-sm font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              Featured figure or article thumbnail.
-            </figcaption>
           </figure>
 
           <div className="mt-8">
