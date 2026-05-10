@@ -19,6 +19,7 @@ function createHeadingRenderer(level) {
 function resolveImage(src) {
   if (!src || /^https?:\/\//i.test(src) || src.startsWith("data:")) return src;
   if (src.startsWith("/images/")) return src;
+  if (src.startsWith("/assets/images/")) return src.replace("/assets/images/", "/images/");
   const config = getGithubConfig();
   return githubRawUrl(src, config);
 }
