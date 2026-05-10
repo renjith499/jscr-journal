@@ -6,7 +6,7 @@ category: "Renewable Energy"
 abstract: "Passive cooling using extended surfaces is a widely used thermal management method for electronic devices because it requires no external power and has high reliability. This article develops an extended thermal analysis of a vertical fin array subjected to natural convection in quiescent atmospheric air. The original fin-array problem is modified by including fin efficiency analysis, comparison of alternative fin geometries, parametric investigation of fin spacing and thickness, and thermal resistance network modeling. Four geometries are considered: rectangular plate fins, triangular tapered fins, trapezoidal tapered fins, and circular pin-fin equivalents. A Python-based computational model is used to calculate the Rayleigh number, Nusselt number, convection coefficient, fin efficiency, total heat transfer rate, and thermal resistance. For the baseline aluminum fin array, the optimum spacing is approximately 11.36 mm, and the rectangular plate-fin configuration provides the largest heat dissipation, approximately 69.84 W, with a thermal resistance of 0.716 K/W. The results show that geometry and spacing strongly affect passive heat-sink performance, and that thermal resistance modeling provides a direct design metric for electronic cooling applications"
 keywords: ["Natural convection", "Fin array", "Thermal analysis", "Heat transfer enhancement", "Electronic cooling", "Optimum fin spacing"]
 thumbnail: "/images/fineff.png"
-doi: ""
+doi: "10.5281/zenodo.20102024"
 pdf: "/pdfs/article_3.pdf"
 ---
 
