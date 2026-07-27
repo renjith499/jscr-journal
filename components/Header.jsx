@@ -9,6 +9,7 @@ export function Header({ darkMode, setDarkMode, open, setOpen }) {
     ["Articles", "/#articles"],
     ["Journals", "/#journals"],
     ["Categories", "/#categories"],
+    ["Graph Digitizer", "/tools/graph-digitizer"],
     ["Submit Paper", "/submit-paper"],
     ["About", "/#about"],
   ];

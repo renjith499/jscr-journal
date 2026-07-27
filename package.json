@@ -20,7 +20,8 @@
     "rehype-katex": "latest",
     "remark-gfm": "latest",
     "remark-math": "latest",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "xlsx": "^0.18.5"
   },
   "type": "module"
 }
