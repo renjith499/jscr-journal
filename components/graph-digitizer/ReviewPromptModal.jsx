@@ -4,10 +4,7 @@ import { useState } from "react";
 import { Star, X } from "lucide-react";
 import { submitFeedback } from "@/lib/graph-digitizer/feedback";
 
-// Fill in once you have your Google Business Profile review link, e.g.
-// "https://g.page/r/XXXXXXXXXXXX/review". Leave blank to hide the button
-// (review requests must never block a feature — see Google's review-gating policy).
-export const GOOGLE_REVIEW_URL = "";
+export const GOOGLE_REVIEW_URL = "https://g.page/r/CQ1bDJ3g_c2vEBM/review";
 
 export function ReviewPromptModal({ email, onClose }) {
   const [feedback, setFeedback] = useState("");
