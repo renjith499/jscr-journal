@@ -18,7 +18,8 @@ export default function GraphDigitizerPage() {
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
               Recover numeric data from a figure in a paper. Upload the image, calibrate the axes, click along the
-              curve, and export the digitized values — entirely in your browser, nothing is uploaded anywhere.
+              curve, and export the digitized values — your graph image and points stay in your browser. We'll ask
+              for an email once before your first export, just to understand how the tool gets used.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3 lg:pt-8">

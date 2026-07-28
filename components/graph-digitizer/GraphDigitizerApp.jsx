@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { Download, FileSpreadsheet, FolderOpen, ImagePlus, Save } from "lucide-react";
+import { EmailGateModal } from "./EmailGateModal";
+import { ReviewPromptModal } from "./ReviewPromptModal";
 import {
   createDataset,
   createProject,
@@ -34,14 +36,49 @@ function loadImageDimensions(dataUrl) {
   });
 }
 
+const EMAIL_SESSION_KEY = "gd_captured_email";
+const REVIEW_SHOWN_SESSION_KEY = "gd_review_shown";
+
 export function GraphDigitizerApp() {
   const [project, setProject] = useState(() => createProject("Untitled Project"));
   const [activeDatasetId, setActiveDatasetId] = useState(null);
   const [mode, setMode] = useState("pan");
   const [armedField, setArmedField] = useState(null);
 
+  const [capturedEmail, setCapturedEmail] = useState(() =>
+    typeof window === "undefined" ? null : sessionStorage.getItem(EMAIL_SESSION_KEY)
+  );
+  const [showEmailGate, setShowEmailGate] = useState(false);
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
+  const pendingActionRef = useRef(null);
+
   const imageInputRef = useRef(null);
   const projectInputRef = useRef(null);
+
+  function maybePromptReview() {
+    if (typeof window === "undefined" || sessionStorage.getItem(REVIEW_SHOWN_SESSION_KEY)) return;
+    sessionStorage.setItem(REVIEW_SHOWN_SESSION_KEY, "1");
+    setTimeout(() => setShowReviewPrompt(true), 500);
+  }
+
+  function requireEmailThen(action) {
+    if (capturedEmail) {
+      action();
+      maybePromptReview();
+      return;
+    }
+    pendingActionRef.current = action;
+    setShowEmailGate(true);
+  }
+
+  function handleEmailCaptured(email) {
+    sessionStorage.setItem(EMAIL_SESSION_KEY, email);
+    setCapturedEmail(email);
+    setShowEmailGate(false);
+    pendingActionRef.current?.();
+    pendingActionRef.current = null;
+    maybePromptReview();
+  }
 
   const activeDataset = project.datasets.find((d) => d.datasetId === activeDatasetId) || null;
 
@@ -212,10 +249,10 @@ export function GraphDigitizerApp() {
           }}
         />
 
-        <button onClick={() => downloadProjectJson(project)} className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300">
+        <button onClick={() => requireEmailThen(() => downloadProjectJson(project))} className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300">
           <Save size={16} /> Save Project
         </button>
-        <button onClick={() => exportProjectExcel(project)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-bold text-white hover:bg-accent">
+        <button onClick={() => requireEmailThen(() => exportProjectExcel(project))} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-bold text-white hover:bg-accent">
           <FileSpreadsheet size={16} /> Export Excel
         </button>
       </div>
@@ -243,7 +280,7 @@ export function GraphDigitizerApp() {
               </h3>
               {activeDataset && (
                 <button
-                  onClick={() => downloadDatasetCsv(activeDataset, project.calibration)}
+                  onClick={() => requireEmailThen(() => downloadDatasetCsv(activeDataset, project.calibration))}
                   className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-accent dark:text-slate-400"
                 >
                   <Download size={13} /> CSV
@@ -275,7 +312,7 @@ export function GraphDigitizerApp() {
             onColorChange={(id, color) => updateDataset(id, (d) => ({ ...d, color }))}
             onToggleVisible={(id) => updateDataset(id, (d) => ({ ...d, visible: !d.visible }))}
             onDelete={handleDeleteDataset}
-            onExportCsv={(dataset) => downloadDatasetCsv(dataset, project.calibration)}
+            onExportCsv={(dataset) => requireEmailThen(() => downloadDatasetCsv(dataset, project.calibration))}
             onImportExternal={handleImportExternal}
             onDeleteExternal={(id) => setProject((current) => ({ ...current, externalDatasets: current.externalDatasets.filter((d) => d.datasetId !== id) }))}
             onToggleExternalVisible={(id) =>
@@ -292,6 +329,17 @@ export function GraphDigitizerApp() {
         <h3 className="mb-2 text-sm font-extrabold uppercase tracking-wide text-primary dark:text-white">Comparison Chart</h3>
         <ComparisonChart series={chartSeries} xLabel={chartLabels.xLabel} yLabel={chartLabels.yLabel} />
       </div>
+
+      {showEmailGate && (
+        <EmailGateModal
+          onSuccess={handleEmailCaptured}
+          onClose={() => {
+            setShowEmailGate(false);
+            pendingActionRef.current = null;
+          }}
+        />
+      )}
+      {showReviewPrompt && <ReviewPromptModal email={capturedEmail} onClose={() => setShowReviewPrompt(false)} />}
     </div>
   );
 }
