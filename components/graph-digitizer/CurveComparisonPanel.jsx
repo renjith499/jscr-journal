@@ -30,7 +30,7 @@ export function CurveComparisonPanel({ series, xLabel, yLabel, referenceId, onRe
   return (
     <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-sm font-extrabold uppercase tracking-wide text-primary dark:text-white">Curve Comparison — % Error</h3>
+        <h3 className="text-sm font-extrabold uppercase tracking-wide text-primary dark:text-white">Curve Comparison — Error Metrics</h3>
         <label className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
           Reference curve
           <select
@@ -55,7 +55,6 @@ export function CurveComparisonPanel({ series, xLabel, yLabel, referenceId, onRe
               <th className="px-3 py-2 font-bold">RMSE</th>
               <th className="px-3 py-2 font-bold">MAE</th>
               <th className="px-3 py-2 font-bold">Max Abs Error</th>
-              <th className="px-3 py-2 font-bold">Mean % Error</th>
               <th className="px-3 py-2 font-bold">Area Error</th>
               <th className="px-3 py-2 font-bold">Similarity %</th>
               <th className="px-3 py-2 font-bold">Points (compared/skipped)</th>
@@ -71,7 +70,6 @@ export function CurveComparisonPanel({ series, xLabel, yLabel, referenceId, onRe
                 <td className="px-3 py-2 tabular-nums">{fmt(summary.rmse)}</td>
                 <td className="px-3 py-2 tabular-nums">{fmt(summary.mae)}</td>
                 <td className="px-3 py-2 tabular-nums">{fmt(summary.maxAbsError)}</td>
-                <td className="px-3 py-2 tabular-nums">{summary.meanPctError === null ? "—" : `${fmt(summary.meanPctError, 2)}%`}</td>
                 <td className="px-3 py-2 tabular-nums">{fmt(summary.areaError)}</td>
                 <td className="px-3 py-2 tabular-nums">{summary.similarity === null ? "—" : `${fmt(summary.similarity, 1)}%`}</td>
                 <td className="px-3 py-2 tabular-nums">
@@ -93,7 +91,6 @@ export function CurveComparisonPanel({ series, xLabel, yLabel, referenceId, onRe
               <th className="px-3 py-2 font-bold">{yLabel} (interp.)</th>
               <th className="px-3 py-2 font-bold">Error</th>
               <th className="px-3 py-2 font-bold">Abs Error</th>
-              <th className="px-3 py-2 font-bold">% Error</th>
               <th className="px-3 py-2 font-bold">Status</th>
             </tr>
           </thead>
@@ -107,7 +104,6 @@ export function CurveComparisonPanel({ series, xLabel, yLabel, referenceId, onRe
                   <td className="px-3 py-1.5 tabular-nums">{fmt(row.yInterp)}</td>
                   <td className="px-3 py-1.5 tabular-nums">{fmt(row.error)}</td>
                   <td className="px-3 py-1.5 tabular-nums">{fmt(row.absError)}</td>
-                  <td className="px-3 py-1.5 tabular-nums">{row.pctError === null ? "—" : `${fmt(row.pctError, 2)}%`}</td>
                   <td className="px-3 py-1.5">{row.status}</td>
                 </tr>
               ))
