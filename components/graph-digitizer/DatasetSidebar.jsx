@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Download, Eye, EyeOff, FileUp, Plus, Scan, Trash2 } from "lucide-react";
+import { Download, Eye, EyeOff, FileDown, FileUp, Plus, Scan, Sparkles, Trash2 } from "lucide-react";
 
 function DatasetRow({ dataset, active, onSelect, onRename, onColorChange, onToggleVisible, onDelete, onExport }) {
   return (
@@ -53,6 +53,7 @@ export function DatasetSidebar({
   onDelete,
   onExportCsv,
   onImportExternal,
+  onDownloadTemplate,
   onDeleteExternal,
   onToggleExternalVisible,
 }) {
@@ -85,7 +86,23 @@ export function DatasetSidebar({
           </p>
         )}
         <div className="space-y-2">
-          {datasets.length === 0 && <p className="text-xs text-slate-500 dark:text-slate-400">No datasets yet — create one to start digitizing.</p>}
+          {datasets.length === 0 && (
+            <div className="flex flex-col items-start gap-2 rounded-md border-2 border-dashed border-accent/50 bg-cyan-50 p-3 dark:border-cyan-800 dark:bg-cyan-950/40">
+              <p className="flex items-center gap-1.5 text-sm font-bold text-primary dark:text-white">
+                <Sparkles size={15} className="text-accent" /> No curve yet
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-300">
+                Create a curve first, then switch to "Add Points" to start clicking on the graph.
+              </p>
+              <button
+                type="button"
+                onClick={onAdd}
+                className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-accent"
+              >
+                <Plus size={14} /> Create Curve
+              </button>
+            </div>
+          )}
           {datasets.map((dataset) => (
             <DatasetRow
               key={dataset.datasetId}
@@ -103,19 +120,29 @@ export function DatasetSidebar({
       </div>
 
       <div>
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-extrabold uppercase tracking-wide text-primary dark:text-white">External Comparison Data</h3>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300"
-          >
-            <FileUp size={14} /> Import CSV
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onDownloadTemplate}
+              title="Download a template file in the expected X,Y format"
+              className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300"
+            >
+              <FileDown size={14} /> Template
+            </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300"
+            >
+              <FileUp size={14} /> Import Data
+            </button>
+          </div>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv,.txt,.tsv"
+            accept=".csv,.txt,.tsv,.xlsx,.xls"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -126,7 +153,10 @@ export function DatasetSidebar({
         </div>
         <div className="space-y-2">
           {externalDatasets.length === 0 && (
-            <p className="text-xs text-slate-500 dark:text-slate-400">Import a CSV/TXT (X,Y columns) to overlay reference or simulation data.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Import a CSV or Excel file (X in the first column, Y in the second — a header row is fine) to overlay
+              reference or simulation data. Not sure of the format? Grab the template above.
+            </p>
           )}
           {externalDatasets.map((dataset) => (
             <div key={dataset.datasetId} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-900">

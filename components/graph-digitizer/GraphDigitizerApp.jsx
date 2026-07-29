@@ -15,9 +15,10 @@ import {
 import { nextPaletteColor } from "@/lib/graph-digitizer/palette";
 import {
   downloadDatasetCsv,
+  downloadExternalDataTemplate,
   downloadProjectJson,
   exportProjectExcel,
-  importExternalCsv,
+  importExternalDataset,
   loadProjectJsonFile,
   readFileAsDataUrl,
 } from "@/lib/graph-digitizer/io";
@@ -233,7 +234,13 @@ export function GraphDigitizerApp() {
 
   async function handleImportExternal(file) {
     const colorIndex = project.datasets.length + project.externalDatasets.length;
-    const dataset = await importExternalCsv(file, nextPaletteColor(colorIndex));
+    const dataset = await importExternalDataset(file, nextPaletteColor(colorIndex));
+    if (dataset.points.length === 0) {
+      window.alert(
+        'Couldn\'t find any numeric X,Y data in that file. It needs two numeric columns (X then Y), a header row is fine. Use "Download template" for the exact format, fill your data into it, then import that file.'
+      );
+      return;
+    }
     setProject((current) => ({ ...current, externalDatasets: [...current.externalDatasets, dataset] }));
   }
 
@@ -345,6 +352,7 @@ export function GraphDigitizerApp() {
             onDelete={handleDeleteDataset}
             onExportCsv={(dataset) => requireEmailThen(() => downloadDatasetCsv(dataset, project.calibration))}
             onImportExternal={handleImportExternal}
+            onDownloadTemplate={downloadExternalDataTemplate}
             onDeleteExternal={(id) => setProject((current) => ({ ...current, externalDatasets: current.externalDatasets.filter((d) => d.datasetId !== id) }))}
             onToggleExternalVisible={(id) =>
               setProject((current) => ({
