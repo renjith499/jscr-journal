@@ -116,9 +116,16 @@ export function GraphDigitizerApp() {
   }
 
   function handleAddDataset() {
+    const defaultName = `Curve ${project.datasets.length + 1}`;
+    const typed = typeof window !== "undefined" ? window.prompt("Name this curve:", defaultName) : defaultName;
+    if (typed === null) return; // user cancelled
+    const name = typed.trim() || defaultName;
     const colorIndex = project.datasets.length + project.externalDatasets.length;
-    const dataset = createDataset(`Curve ${project.datasets.length + 1}`, nextPaletteColor(colorIndex));
-    setProject((current) => ({ ...current, datasets: [...current.datasets, dataset] }));
+    const dataset = createDataset(name, nextPaletteColor(colorIndex));
+    setProject((current) => ({
+      ...current,
+      datasets: [...current.datasets.map((d) => ({ ...d, visible: false })), dataset],
+    }));
     setActiveDatasetId(dataset.datasetId);
     if (project.imageDataUrl) setMode("add");
   }
@@ -128,6 +135,28 @@ export function GraphDigitizerApp() {
       ...current,
       datasets: current.datasets.map((d) => (d.datasetId === datasetId ? updater(d) : d)),
     }));
+  }
+
+  function soloDataset(datasetId) {
+    setProject((current) => ({
+      ...current,
+      datasets: current.datasets.map((d) => ({ ...d, visible: d.datasetId === datasetId })),
+    }));
+  }
+
+  function showAllDatasets() {
+    setProject((current) => ({
+      ...current,
+      datasets: current.datasets.map((d) => ({ ...d, visible: true })),
+    }));
+  }
+
+  function handleModeChange(nextMode) {
+    if (nextMode === "add" && !activeDatasetId) {
+      handleAddDataset();
+      return;
+    }
+    setMode(nextMode);
   }
 
   function handleArmField(field) {
@@ -259,7 +288,7 @@ export function GraphDigitizerApp() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-4">
-          <Toolbar mode={mode} onModeChange={setMode} disabled={!project.imageDataUrl} />
+          <Toolbar mode={mode} onModeChange={handleModeChange} disabled={!project.imageDataUrl} />
           <DigitizerCanvas
             imageDataUrl={project.imageDataUrl}
             imageWidth={project.imageWidth}
@@ -305,9 +334,11 @@ export function GraphDigitizerApp() {
             activeDatasetId={activeDatasetId}
             onSelect={(id) => {
               setActiveDatasetId(id);
+              soloDataset(id);
               if (mode === "pan" || mode === "calibrate") setMode("add");
             }}
             onAdd={handleAddDataset}
+            onShowAll={showAllDatasets}
             onRename={(id, name) => updateDataset(id, (d) => ({ ...d, name }))}
             onColorChange={(id, color) => updateDataset(id, (d) => ({ ...d, color }))}
             onToggleVisible={(id) => updateDataset(id, (d) => ({ ...d, visible: !d.visible }))}

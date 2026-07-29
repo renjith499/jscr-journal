@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Download, Eye, EyeOff, FileUp, Plus, Trash2 } from "lucide-react";
+import { Download, Eye, EyeOff, FileUp, Plus, Scan, Trash2 } from "lucide-react";
 
 function DatasetRow({ dataset, active, onSelect, onRename, onColorChange, onToggleVisible, onDelete, onExport }) {
   return (
@@ -46,6 +46,7 @@ export function DatasetSidebar({
   activeDatasetId,
   onSelect,
   onAdd,
+  onShowAll,
   onRename,
   onColorChange,
   onToggleVisible,
@@ -60,12 +61,29 @@ export function DatasetSidebar({
   return (
     <div className="space-y-4">
       <div>
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <h3 className="text-sm font-extrabold uppercase tracking-wide text-primary dark:text-white">Digitized Datasets</h3>
-          <button type="button" onClick={onAdd} className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-bold text-white hover:bg-accent">
-            <Plus size={14} /> New
-          </button>
+          <div className="flex items-center gap-2">
+            {datasets.length > 1 && (
+              <button
+                type="button"
+                onClick={onShowAll}
+                title="Show every curve on the canvas again"
+                className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300"
+              >
+                <Scan size={14} /> Show all
+              </button>
+            )}
+            <button type="button" onClick={onAdd} className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-bold text-white hover:bg-accent">
+              <Plus size={14} /> New
+            </button>
+          </div>
         </div>
+        {datasets.length > 1 && (
+          <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+            Selecting a curve shows only its points on the canvas — use the eye icon or "Show all" to bring others back.
+          </p>
+        )}
         <div className="space-y-2">
           {datasets.length === 0 && <p className="text-xs text-slate-500 dark:text-slate-400">No datasets yet — create one to start digitizing.</p>}
           {datasets.map((dataset) => (
