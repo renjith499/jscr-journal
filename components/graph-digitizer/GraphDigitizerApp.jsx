@@ -28,6 +28,7 @@ import { CalibrationPanel } from "./CalibrationPanel";
 import { DatasetSidebar } from "./DatasetSidebar";
 import { PointTable } from "./PointTable";
 import { ComparisonChart, toChartLabel } from "./ComparisonChart";
+import { CurveComparisonPanel } from "./CurveComparisonPanel";
 
 function loadImageDimensions(dataUrl) {
   return new Promise((resolve) => {
@@ -51,6 +52,7 @@ export function GraphDigitizerApp() {
   );
   const [showEmailGate, setShowEmailGate] = useState(false);
   const [showReviewPrompt, setShowReviewPrompt] = useState(false);
+  const [comparisonReferenceId, setComparisonReferenceId] = useState(null);
   const pendingActionRef = useRef(null);
 
   const imageInputRef = useRef(null);
@@ -288,7 +290,7 @@ export function GraphDigitizerApp() {
         <button onClick={() => requireEmailThen(() => downloadProjectJson(project))} className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-2 text-sm font-bold text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300">
           <Save size={16} /> Save Project
         </button>
-        <button onClick={() => requireEmailThen(() => exportProjectExcel(project))} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-bold text-white hover:bg-accent">
+        <button onClick={() => requireEmailThen(() => exportProjectExcel(project, { referenceId: comparisonReferenceId }))} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-bold text-white hover:bg-accent">
           <FileSpreadsheet size={16} /> Export Excel
         </button>
       </div>
@@ -368,6 +370,14 @@ export function GraphDigitizerApp() {
         <h3 className="mb-2 text-sm font-extrabold uppercase tracking-wide text-primary dark:text-white">Comparison Chart</h3>
         <ComparisonChart series={chartSeries} xLabel={chartLabels.xLabel} yLabel={chartLabels.yLabel} />
       </div>
+
+      <CurveComparisonPanel
+        series={chartSeries}
+        xLabel={chartLabels.xLabel}
+        yLabel={chartLabels.yLabel}
+        referenceId={comparisonReferenceId}
+        onReferenceChange={setComparisonReferenceId}
+      />
 
       {showEmailGate && (
         <EmailGateModal
