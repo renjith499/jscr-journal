@@ -430,7 +430,7 @@ export function GraphDigitizerApp() {
 
       <div>
         <h3 className="mb-2 text-sm font-extrabold uppercase tracking-wide text-primary dark:text-white">Comparison Chart</h3>
-        <ComparisonChart series={chartSeries} xLabel={chartLabels.xLabel} yLabel={chartLabels.yLabel} />
+        <ComparisonChart series={chartSeries} xLabel={chartLabels.xLabel} yLabel={chartLabels.yLabel} referenceId={comparisonReferenceId} />
       </div>
 
       <CurveComparisonPanel

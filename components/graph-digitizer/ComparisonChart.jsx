@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { axisHeading } from "@/lib/graph-digitizer/model";
 import { CATEGORICAL_PALETTE, CHART_CHROME } from "@/lib/graph-digitizer/palette";
 import { niceTicks, formatTick } from "@/lib/graph-digitizer/ticks";
+import { compareCurves } from "@/lib/graph-digitizer/comparison";
 import { useIsDarkMode } from "./useIsDarkMode";
 
 const WIDTH = 760;
@@ -17,12 +18,29 @@ function darkVariant(hex) {
   return entry ? entry.dark : hex;
 }
 
-export function ComparisonChart({ series, xLabel, yLabel }) {
+export function ComparisonChart({ series, xLabel, yLabel, referenceId }) {
   const isDark = useIsDarkMode();
   const svgRef = useRef(null);
   const [hover, setHover] = useState(null);
 
   const visibleSeries = series.filter((s) => s.visible && s.points.length > 0);
+  const reference = visibleSeries.find((s) => s.id === referenceId) || visibleSeries[0];
+  const interpolatedSeries = useMemo(() => {
+    if (!reference || reference.points.length < 2) return [];
+    return visibleSeries
+      .filter((item) => item.id !== reference.id && item.points.length >= 2)
+      .map((item) => ({
+        ...item,
+        points: compareCurves(reference, item).rows
+          .filter((row) => row.yInterp !== null)
+          .map((row, index) => ({
+            id: `interp-${item.id}-${index}`,
+            x: row.x,
+            y: row.yInterp,
+            interpolated: true,
+          })),
+      }));
+  }, [reference, visibleSeries]);
 
   const { xDomain, yDomain } = useMemo(() => {
     const allX = visibleSeries.flatMap((s) => s.points.map((p) => p.x));
@@ -56,6 +74,17 @@ export function ComparisonChart({ series, xLabel, yLabel }) {
         if (dist < closestDist) {
           closestDist = dist;
           closest = { series: s, point: p, sx: xScale(p.x), sy: yScale(p.y) };
+        }
+      });
+    });
+    interpolatedSeries.forEach((s) => {
+      s.points.forEach((p) => {
+        const dx = xScale(p.x) - mx;
+        const dy = yScale(p.y) - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < closestDist) {
+          closestDist = dist;
+          closest = { series: s, point: p, sx: xScale(p.x), sy: yScale(p.y), interpolated: true };
         }
       });
     });
@@ -145,6 +174,26 @@ export function ComparisonChart({ series, xLabel, yLabel }) {
           );
         })}
 
+        {interpolatedSeries.map((s) =>
+          s.points.map((p) => {
+            const size = hover?.point === p ? 6 : 4.5;
+            return (
+              <rect
+                key={p.id}
+                x={xScale(p.x) - size}
+                y={yScale(p.y) - size}
+                width={size * 2}
+                height={size * 2}
+                rx={1}
+                fill={isDark ? "#fbbf24" : "#d97706"}
+                stroke="var(--gd-surface)"
+                strokeWidth={1.5}
+                transform={`rotate(45 ${xScale(p.x)} ${yScale(p.y)})`}
+              />
+            );
+          }),
+        )}
+
         {hover && (
           <g>
             <line x1={hover.sx} x2={hover.sx} y1={PAD.top} y2={HEIGHT - PAD.bottom} stroke="var(--gd-muted)" strokeWidth={1} strokeDasharray="3 3" opacity={0.6} />
@@ -154,8 +203,8 @@ export function ComparisonChart({ series, xLabel, yLabel }) {
 
       {hover && (
         <div className="mt-2 inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
-          <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: isDark ? darkVariant(hover.series.color) : hover.series.color }} />
-          {hover.series.name}: {formatTick(hover.point.x)}, {formatTick(hover.point.y)}
+          <span className={hover.interpolated ? "h-2.5 w-2.5 rotate-45 rounded-[1px] bg-amber-600 dark:bg-amber-400" : "h-2.5 w-2.5 rounded-full"} style={hover.interpolated ? undefined : { backgroundColor: isDark ? darkVariant(hover.series.color) : hover.series.color }} />
+          {hover.series.name}{hover.interpolated ? " (interpolated)" : ""}: {formatTick(hover.point.x)}, {formatTick(hover.point.y)}
         </div>
       )}
 
@@ -167,6 +216,13 @@ export function ComparisonChart({ series, xLabel, yLabel }) {
               {s.name}
             </div>
           ))}
+        </div>
+      )}
+      {interpolatedSeries.some((item) => item.points.length) && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 pt-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">
+          <span className="font-bold text-primary dark:text-white">Point type:</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-slate-500" />Original sampled point</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rotate-45 rounded-[1px] bg-amber-600 dark:bg-amber-400" />Interpolated comparison point</span>
         </div>
       )}
     </div>
