@@ -12,6 +12,11 @@ import {
   abaqusLibraryFileName,
   generateAbaqus2020Library,
 } from "@/lib/cdp-studio/abaqus-library";
+import { CDPEmailGateModal } from "./CDPEmailGateModal";
+import { CDPReviewPromptModal } from "./CDPReviewPromptModal";
+
+const EMAIL_SESSION_KEY = "cdp_captured_email";
+const REVIEW_SHOWN_SESSION_KEY = "cdp_review_shown";
 function Field({ label, value, onChange, unit }) {
   return (
     <label className="block">
@@ -78,6 +83,14 @@ export function CDPStudio() {
     [projectName, setProjectName] = useState("CDP_Project"),
     [view, setView] = useState("curves"),
     [copied, setCopied] = useState(false),
+    [capturedEmail, setCapturedEmail] = useState(() =>
+      typeof window === "undefined"
+        ? null
+        : sessionStorage.getItem(EMAIL_SESSION_KEY),
+    ),
+    [showEmailGate, setShowEmailGate] = useState(false),
+    [showReviewPrompt, setShowReviewPrompt] = useState(false),
+    pendingDownloadRef = useRef(null),
     m = useMemo(() => generate(i), [i]),
     set = (k, v) => setI((x) => ({ ...x, [k]: v })),
     auto = () =>
@@ -97,6 +110,35 @@ export function CDPStudio() {
         abaqusLibraryFileName(projectName),
         "application/octet-stream",
       );
+
+  function maybePromptReview() {
+    if (
+      typeof window === "undefined" ||
+      sessionStorage.getItem(REVIEW_SHOWN_SESSION_KEY)
+    )
+      return;
+    sessionStorage.setItem(REVIEW_SHOWN_SESSION_KEY, "1");
+    setTimeout(() => setShowReviewPrompt(true), 500);
+  }
+
+  function requireEmailThen(downloadAction) {
+    if (capturedEmail) {
+      downloadAction();
+      maybePromptReview();
+      return;
+    }
+    pendingDownloadRef.current = downloadAction;
+    setShowEmailGate(true);
+  }
+
+  function handleEmailCaptured(email) {
+    sessionStorage.setItem(EMAIL_SESSION_KEY, email);
+    setCapturedEmail(email);
+    setShowEmailGate(false);
+    pendingDownloadRef.current?.();
+    pendingDownloadRef.current = null;
+    maybePromptReview();
+  }
   return (
     <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
       <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
@@ -269,7 +311,7 @@ export function CDPStudio() {
                   {copied ? "Copied" : "Copy"}
                 </button>
                 <button
-                  onClick={download}
+                  onClick={() => requireEmailThen(download)}
                   className="flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-xs font-bold text-white"
                 >
                   <Download size={14} />
@@ -292,7 +334,7 @@ export function CDPStudio() {
                   />
                 </label>
                 <button
-                  onClick={downloadLibrary}
+                  onClick={() => requireEmailThen(downloadLibrary)}
                   className="flex items-center justify-center gap-1 rounded-md bg-primary px-4 py-2.5 text-xs font-bold text-white"
                 >
                   <Download size={14} />
@@ -340,6 +382,21 @@ export function CDPStudio() {
           </div>
         </div>
       </section>
+      {showEmailGate && (
+        <CDPEmailGateModal
+          onSuccess={handleEmailCaptured}
+          onClose={() => {
+            setShowEmailGate(false);
+            pendingDownloadRef.current = null;
+          }}
+        />
+      )}
+      {showReviewPrompt && (
+        <CDPReviewPromptModal
+          email={capturedEmail}
+          onClose={() => setShowReviewPrompt(false)}
+        />
+      )}
     </div>
   );
 }
