@@ -354,6 +354,15 @@ export function GraphDigitizerApp() {
             onAddPoint={handleAddPoint}
             onMovePoint={handleMovePoint}
             onDeletePoint={handleDeletePoint}
+            canFinishCalibration={
+              mode === "calibrate" &&
+              ["xStart", "xEnd", "yStart", "yEnd"].every(
+                (field) =>
+                  project.calibration[field].px !== null &&
+                  project.calibration[field].py !== null,
+              )
+            }
+            onFinishCalibration={handleAddDataset}
           />
           <div>
             <div className="mb-2 flex items-center justify-between">

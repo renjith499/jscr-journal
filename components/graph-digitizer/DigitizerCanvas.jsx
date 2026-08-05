@@ -74,6 +74,8 @@ export function DigitizerCanvas({
   onAddPoint,
   onMovePoint,
   onDeletePoint,
+  canFinishCalibration,
+  onFinishCalibration,
 }) {
   const containerRef = useRef(null);
   const svgRef = useRef(null);
@@ -352,6 +354,15 @@ export function DigitizerCanvas({
       >
         Fit
       </button>
+      {canFinishCalibration && (
+        <button
+          type="button"
+          onClick={onFinishCalibration}
+          className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-md bg-primary px-4 py-2 text-sm font-bold text-white shadow-card transition hover:bg-accent"
+        >
+          Finish calibration &amp; name curve
+        </button>
+      )}
     </div>
   );
 }
