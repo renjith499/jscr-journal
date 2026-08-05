@@ -13,7 +13,7 @@ function inputClass() {
   return "w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-accent focus:ring-4 focus:ring-cyan-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-950";
 }
 
-export function CalibrationPanel({ calibration, armedField, onArmField, onValueChange, onAxisLabelChange }) {
+export function CalibrationPanel({ calibration, armedField, onArmField, onValueChange, onAxisLabelChange, canFinish, onFinish }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-3 flex items-center justify-between">
@@ -92,6 +92,15 @@ export function CalibrationPanel({ calibration, armedField, onArmField, onValueC
         point is created. Click an existing marker to select it. Arrow keys nudge by 0.1 pixel for high precision
         (Shift + arrow moves 1 pixel).
       </p>
+      {canFinish && (
+        <button
+          type="button"
+          onClick={onFinish}
+          className="mt-3 w-full rounded-md bg-primary px-4 py-2.5 text-sm font-bold text-white transition hover:bg-accent"
+        >
+          Finish calibration &amp; name curve
+        </button>
+      )}
     </div>
   );
 }

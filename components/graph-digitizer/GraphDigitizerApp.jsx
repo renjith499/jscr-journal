@@ -199,9 +199,6 @@ export function GraphDigitizerApp() {
     // Keep keyboard focus on the point that was just placed. The next click
     // transfers arrow-key control to the newly created calibration point.
     setSelectedCalibrationField(field);
-    if (!nextField) {
-      setTimeout(() => handleAddDataset(), 0);
-    }
   }
 
   function handleMoveCalibrationPoint(field, x, y) {
@@ -381,6 +378,15 @@ export function GraphDigitizerApp() {
             onArmField={handleArmField}
             onValueChange={handleCalibrationValueChange}
             onAxisLabelChange={handleAxisLabelChange}
+            canFinish={
+              mode === "calibrate" &&
+              ["xStart", "xEnd", "yStart", "yEnd"].every(
+                (field) =>
+                  project.calibration[field].px !== null &&
+                  project.calibration[field].py !== null,
+              )
+            }
+            onFinish={handleAddDataset}
           />
           <DatasetSidebar
             datasets={project.datasets}
