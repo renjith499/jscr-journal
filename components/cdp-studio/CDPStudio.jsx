@@ -1,5 +1,345 @@
 "use client";
-import{useEffect,useMemo,useRef,useState}from"react";import{CheckCircle2,Clipboard,Download,RefreshCw,TriangleAlert}from"lucide-react";import{defaults,estimates,generate}from"@/lib/cdp-studio/model";
-function Field({label,value,onChange,unit}){return <label className="block"><span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">{label}</span><div className="flex rounded-md border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950"><input className="min-w-0 flex-1 bg-transparent px-3 py-2 font-mono text-sm outline-none" type="number" step="any" value={value} onChange={e=>onChange(Number(e.target.value))}/>{unit&&<span className="self-center pr-3 text-[10px] font-bold text-slate-400">{unit}</span>}</div></label>}
-function Plot({points,label,color}){const ref=useRef(null);useEffect(()=>{const c=ref.current,g=c?.getContext("2d");if(!g)return;const w=c.width,h=c.height,p=42,xm=Math.max(...points.map(v=>v.x)),ym=Math.max(...points.map(v=>v.stress));g.clearRect(0,0,w,h);g.strokeStyle="#dbe3e8";g.fillStyle="#64748b";g.font="11px monospace";for(let q=0;q<5;q++){const y=18+(h-58)*q/4;g.beginPath();g.moveTo(p,y);g.lineTo(w-12,y);g.stroke();g.fillText((ym*(1-q/4)).toFixed(1),3,y+4)}g.strokeStyle=color;g.lineWidth=3;g.beginPath();points.forEach((v,q)=>{const x=p+v.x/xm*(w-p-12),y=18+(1-v.stress/ym)*(h-58);q?g.lineTo(x,y):g.moveTo(x,y)});g.stroke();g.fillStyle="#64748b";g.textAlign="center";g.fillText(label,w/2,h-8)},[points,label,color]);return <canvas ref={ref} width="560" height="260" className="h-64 w-full"/>}
-export function CDPStudio(){const[i,setI]=useState(defaults),[view,setView]=useState("curves"),[copied,setCopied]=useState(false),m=useMemo(()=>generate(i),[i]),set=(k,v)=>setI(x=>({...x,[k]:v})),auto=()=>setI(x=>({...x,...estimates(x.fc),name:`CDP_${x.fc}MPa`})),download=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([m.text]));a.download=`${i.name}.inp`;a.click();URL.revokeObjectURL(a.href)};return <div className="grid gap-6 lg:grid-cols-[360px_1fr]"><aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900"><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-accent">Material input</p><h2 className="font-extrabold text-primary dark:text-white">{i.name}</h2></div><button onClick={auto} className="flex items-center gap-1 rounded-md border px-2.5 py-2 text-xs font-bold"><RefreshCw size={14}/>Estimate</button></div><label className="mb-4 block text-xs font-bold text-slate-500">Material name<input className="mt-1 w-full rounded-md border px-3 py-2 font-mono text-sm dark:border-slate-700 dark:bg-slate-950" value={i.name} onChange={e=>set("name",e.target.value)}/></label><div className="grid grid-cols-2 gap-3"><Field label="Compressive strength" value={i.fc} unit="MPa" onChange={v=>set("fc",v)}/><Field label="Elastic modulus" value={i.E} unit="MPa" onChange={v=>set("E",v)}/><Field label="Tensile strength" value={i.ft} unit="MPa" onChange={v=>set("ft",v)}/><Field label="Fracture energy" value={i.Gf} unit="N/mm" onChange={v=>set("Gf",v)}/><Field label="Peak strain" value={i.peak} onChange={v=>set("peak",v)}/><Field label="Ultimate strain" value={i.ultimate} onChange={v=>set("ultimate",v)}/><Field label="Density" value={i.density} unit="kg/m³" onChange={v=>set("density",v)}/><Field label="Poisson ratio" value={i.nu} onChange={v=>set("nu",v)}/></div><details className="mt-5 border-t pt-4 dark:border-slate-700"><summary className="cursor-pointer text-xs font-extrabold uppercase tracking-wide">CDP flow parameters</summary><div className="mt-3 grid grid-cols-2 gap-3"><Field label="Dilation angle" value={i.dilation} onChange={v=>set("dilation",v)}/><Field label="Eccentricity" value={i.eccentricity} onChange={v=>set("eccentricity",v)}/><Field label="fb0/fc0" value={i.fb0fc0} onChange={v=>set("fb0fc0",v)}/><Field label="Kc" value={i.k} onChange={v=>set("k",v)}/><Field label="Viscosity" value={i.viscosity} onChange={v=>set("viscosity",v)}/></div></details></aside><section className="min-w-0"><div className="mb-5 flex gap-2 rounded-lg border bg-white p-2 dark:border-slate-800 dark:bg-slate-900">{[["curves","Response curves"],["card","Abaqus card"],["method","Method"]].map(([k,l])=><button key={k} onClick={()=>setView(k)} className={`rounded-md px-4 py-2 text-sm font-bold ${view===k?"bg-primary text-white":"text-slate-500"}`}>{l}</button>)}</div>{view==="curves"&&<div className="grid gap-5 xl:grid-cols-2"><article className="rounded-lg border bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><h3 className="font-extrabold text-primary dark:text-white">Compression envelope</h3><p className="text-xs text-slate-500">Popovics → Abaqus inelastic strain</p><Plot points={m.compression} label="Inelastic strain" color="#e45b35"/></article><article className="rounded-lg border bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><h3 className="font-extrabold text-primary dark:text-white">Tension softening</h3><p className="text-xs text-slate-500">Fracture energy → cracking displacement</p><Plot points={m.tension} label="Cracking displacement (mm)" color="#00b4d8"/></article></div>}{view==="card"&&<div className="rounded-lg border bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><div className="mb-4 flex justify-between"><div><h3 className="font-extrabold">Abaqus input card</h3><p className="text-xs text-slate-500">N–mm–MPa–tonne unit system</p></div><div className="flex gap-2"><button onClick={()=>{navigator.clipboard.writeText(m.text);setCopied(true);setTimeout(()=>setCopied(false),1200)}} className="flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-bold"><Clipboard size={14}/>{copied?"Copied":"Copy"}</button><button onClick={download} className="flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-xs font-bold text-white"><Download size={14}/>Download</button></div></div><pre className="max-h-[620px] overflow-auto rounded-md bg-slate-950 p-5 text-xs leading-6 text-cyan-100">{m.text}</pre></div>}{view==="method"&&<div className="rounded-lg border bg-white p-6 leading-7 text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"><h3 className="text-xl font-extrabold text-primary dark:text-white">Model basis and limits</h3><p className="mt-3">Compression uses a Popovics envelope with the initial tangent fixed to E₀. Tension uses exponential traction-separation softening whose area is the entered mode-I fracture energy. Abaqus inelastic and plastic strain conversions are checked automatically.</p><div className="mt-4 rounded-md bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">Property estimates are starting values—not laboratory calibration. Validate mesh sensitivity and measured cyclic response before safety-critical use.</div></div>}<div className={`mt-5 flex items-center gap-3 rounded-lg border p-4 text-sm ${m.warnings.length?"border-amber-300 bg-amber-50 text-amber-900":"border-emerald-300 bg-emerald-50 text-emerald-900"}`}>{m.warnings.length?<TriangleAlert/>:<CheckCircle2/>}<div><b>{m.warnings.length?"Review required":"Ready to export"}</b><p>{m.warnings[0]||"Abaqus coordinate and plastic-strain checks pass."}</p></div></div></section></div>}
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  CheckCircle2,
+  Clipboard,
+  Download,
+  RefreshCw,
+  TriangleAlert,
+} from "lucide-react";
+import { defaults, estimates, generate } from "@/lib/cdp-studio/model";
+import {
+  abaqusLibraryFileName,
+  generateAbaqus2020Library,
+} from "@/lib/cdp-studio/abaqus-library";
+function Field({ label, value, onChange, unit }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-bold text-slate-500 dark:text-slate-400">
+        {label}
+      </span>
+      <div className="flex rounded-md border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950">
+        <input
+          className="min-w-0 flex-1 bg-transparent px-3 py-2 font-mono text-sm outline-none"
+          type="number"
+          step="any"
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+        />
+        {unit && (
+          <span className="self-center pr-3 text-[10px] font-bold text-slate-400">
+            {unit}
+          </span>
+        )}
+      </div>
+    </label>
+  );
+}
+function Plot({ points, label, color }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const c = ref.current,
+      g = c?.getContext("2d");
+    if (!g) return;
+    const w = c.width,
+      h = c.height,
+      p = 42,
+      xm = Math.max(...points.map((v) => v.x)),
+      ym = Math.max(...points.map((v) => v.stress));
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = "#dbe3e8";
+    g.fillStyle = "#64748b";
+    g.font = "11px monospace";
+    for (let q = 0; q < 5; q++) {
+      const y = 18 + ((h - 58) * q) / 4;
+      g.beginPath();
+      g.moveTo(p, y);
+      g.lineTo(w - 12, y);
+      g.stroke();
+      g.fillText((ym * (1 - q / 4)).toFixed(1), 3, y + 4);
+    }
+    g.strokeStyle = color;
+    g.lineWidth = 3;
+    g.beginPath();
+    points.forEach((v, q) => {
+      const x = p + (v.x / xm) * (w - p - 12),
+        y = 18 + (1 - v.stress / ym) * (h - 58);
+      q ? g.lineTo(x, y) : g.moveTo(x, y);
+    });
+    g.stroke();
+    g.fillStyle = "#64748b";
+    g.textAlign = "center";
+    g.fillText(label, w / 2, h - 8);
+  }, [points, label, color]);
+  return <canvas ref={ref} width="560" height="260" className="h-64 w-full" />;
+}
+export function CDPStudio() {
+  const [i, setI] = useState(defaults),
+    [projectName, setProjectName] = useState("CDP_Project"),
+    [view, setView] = useState("curves"),
+    [copied, setCopied] = useState(false),
+    m = useMemo(() => generate(i), [i]),
+    set = (k, v) => setI((x) => ({ ...x, [k]: v })),
+    auto = () =>
+      setI((x) => ({ ...x, ...estimates(x.fc), name: `CDP_${x.fc}MPa` })),
+    save = (content, fileName, type = "text/plain") => {
+      const a = document.createElement("a");
+      const url = URL.createObjectURL(new Blob([content], { type }));
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    },
+    download = () => save(m.text, `${i.name}.inp`),
+    downloadLibrary = () =>
+      save(
+        generateAbaqus2020Library(i, m, projectName),
+        abaqusLibraryFileName(projectName),
+        "application/octet-stream",
+      );
+  return (
+    <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+      <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-accent">
+              Material input
+            </p>
+            <h2 className="font-extrabold text-primary dark:text-white">
+              {i.name}
+            </h2>
+          </div>
+          <button
+            onClick={auto}
+            className="flex items-center gap-1 rounded-md border px-2.5 py-2 text-xs font-bold"
+          >
+            <RefreshCw size={14} />
+            Estimate
+          </button>
+        </div>
+        <label className="mb-4 block text-xs font-bold text-slate-500">
+          Material name
+          <input
+            className="mt-1 w-full rounded-md border px-3 py-2 font-mono text-sm dark:border-slate-700 dark:bg-slate-950"
+            value={i.name}
+            onChange={(e) => set("name", e.target.value)}
+          />
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <Field
+            label="Compressive strength"
+            value={i.fc}
+            unit="MPa"
+            onChange={(v) => set("fc", v)}
+          />
+          <Field
+            label="Elastic modulus"
+            value={i.E}
+            unit="MPa"
+            onChange={(v) => set("E", v)}
+          />
+          <Field
+            label="Tensile strength"
+            value={i.ft}
+            unit="MPa"
+            onChange={(v) => set("ft", v)}
+          />
+          <Field
+            label="Fracture energy"
+            value={i.Gf}
+            unit="N/mm"
+            onChange={(v) => set("Gf", v)}
+          />
+          <Field
+            label="Peak strain"
+            value={i.peak}
+            onChange={(v) => set("peak", v)}
+          />
+          <Field
+            label="Ultimate strain"
+            value={i.ultimate}
+            onChange={(v) => set("ultimate", v)}
+          />
+          <Field
+            label="Density"
+            value={i.density}
+            unit="kg/m³"
+            onChange={(v) => set("density", v)}
+          />
+          <Field
+            label="Poisson ratio"
+            value={i.nu}
+            onChange={(v) => set("nu", v)}
+          />
+        </div>
+        <details className="mt-5 border-t pt-4 dark:border-slate-700">
+          <summary className="cursor-pointer text-xs font-extrabold uppercase tracking-wide">
+            CDP flow parameters
+          </summary>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <Field
+              label="Dilation angle"
+              value={i.dilation}
+              onChange={(v) => set("dilation", v)}
+            />
+            <Field
+              label="Eccentricity"
+              value={i.eccentricity}
+              onChange={(v) => set("eccentricity", v)}
+            />
+            <Field
+              label="fb0/fc0"
+              value={i.fb0fc0}
+              onChange={(v) => set("fb0fc0", v)}
+            />
+            <Field label="Kc" value={i.k} onChange={(v) => set("k", v)} />
+            <Field
+              label="Viscosity"
+              value={i.viscosity}
+              onChange={(v) => set("viscosity", v)}
+            />
+          </div>
+        </details>
+      </aside>
+      <section className="min-w-0">
+        <div className="mb-5 flex gap-2 rounded-lg border bg-white p-2 dark:border-slate-800 dark:bg-slate-900">
+          {[
+            ["curves", "Response curves"],
+            ["card", "Abaqus card"],
+            ["method", "Method"],
+          ].map(([k, l]) => (
+            <button
+              key={k}
+              onClick={() => setView(k)}
+              className={`rounded-md px-4 py-2 text-sm font-bold ${view === k ? "bg-primary text-white" : "text-slate-500"}`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+        {view === "curves" && (
+          <div className="grid gap-5 xl:grid-cols-2">
+            <article className="rounded-lg border bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+              <h3 className="font-extrabold text-primary dark:text-white">
+                Compression envelope
+              </h3>
+              <p className="text-xs text-slate-500">
+                Popovics → Abaqus inelastic strain
+              </p>
+              <Plot
+                points={m.compression}
+                label="Inelastic strain"
+                color="#e45b35"
+              />
+            </article>
+            <article className="rounded-lg border bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+              <h3 className="font-extrabold text-primary dark:text-white">
+                Tension softening
+              </h3>
+              <p className="text-xs text-slate-500">
+                Fracture energy → cracking displacement
+              </p>
+              <Plot
+                points={m.tension}
+                label="Cracking displacement (mm)"
+                color="#00b4d8"
+              />
+            </article>
+          </div>
+        )}
+        {view === "card" && (
+          <div className="rounded-lg border bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-4 flex justify-between">
+              <div>
+                <h3 className="font-extrabold">Abaqus input card</h3>
+                <p className="text-xs text-slate-500">
+                  N–mm–MPa–tonne unit system
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(m.text);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1200);
+                  }}
+                  className="flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-bold"
+                >
+                  <Clipboard size={14} />
+                  {copied ? "Copied" : "Copy"}
+                </button>
+                <button
+                  onClick={download}
+                  className="flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-xs font-bold text-white"
+                >
+                  <Download size={14} />
+                  Download .inp
+                </button>
+              </div>
+            </div>
+            <pre className="max-h-[620px] overflow-auto rounded-md bg-slate-950 p-5 text-xs leading-6 text-cyan-100">
+              {m.text}
+            </pre>
+            <div className="mt-5 rounded-lg border border-cyan-200 bg-cyan-50 p-4 dark:border-cyan-900 dark:bg-cyan-950">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <label className="block flex-1 text-xs font-bold text-slate-600 dark:text-cyan-100">
+                  CAE / project name
+                  <input
+                    className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 dark:border-cyan-800 dark:bg-slate-950 dark:text-white"
+                    value={projectName}
+                    onChange={(event) => setProjectName(event.target.value)}
+                    placeholder="CDP_Project"
+                  />
+                </label>
+                <button
+                  onClick={downloadLibrary}
+                  className="flex items-center justify-center gap-1 rounded-md bg-primary px-4 py-2.5 text-xs font-bold text-white"
+                >
+                  <Download size={14} />
+                  Download .lib
+                </button>
+              </div>
+              <p className="mt-3 text-xs leading-5 text-slate-600 dark:text-cyan-100">
+                Additional Abaqus 2020 material-library export. In Property,
+                open the Material Library tab and add the generated material to
+                your model. The library filename uses the project name; the
+                material name remains <b>{i.name}</b>.
+              </p>
+            </div>
+          </div>
+        )}
+        {view === "method" && (
+          <div className="rounded-lg border bg-white p-6 leading-7 text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+            <h3 className="text-xl font-extrabold text-primary dark:text-white">
+              Model basis and limits
+            </h3>
+            <p className="mt-3">
+              Compression uses a Popovics envelope with the initial tangent
+              fixed to E₀. Tension uses exponential traction-separation
+              softening whose area is the entered mode-I fracture energy. Abaqus
+              inelastic and plastic strain conversions are checked
+              automatically.
+            </p>
+            <div className="mt-4 rounded-md bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-100">
+              Property estimates are starting values—not laboratory calibration.
+              Validate mesh sensitivity and measured cyclic response before
+              safety-critical use.
+            </div>
+          </div>
+        )}
+        <div
+          className={`mt-5 flex items-center gap-3 rounded-lg border p-4 text-sm ${m.warnings.length ? "border-amber-300 bg-amber-50 text-amber-900" : "border-emerald-300 bg-emerald-50 text-emerald-900"}`}
+        >
+          {m.warnings.length ? <TriangleAlert /> : <CheckCircle2 />}
+          <div>
+            <b>{m.warnings.length ? "Review required" : "Ready to export"}</b>
+            <p>
+              {m.warnings[0] ||
+                "Abaqus coordinate and plastic-strain checks pass."}
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
