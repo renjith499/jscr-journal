@@ -26,8 +26,8 @@ function SceneContent({ imageDataUrl, imageWidth, imageHeight, calibration, data
         const point = calibration[field];
         if (point.px === null || point.px === undefined || point.py === null || point.py === undefined) return null;
         return (
-          <g key={field} transform={`translate(${point.px} ${point.py})`} onClick={(event) => event.stopPropagation()} onPointerDown={onCalibrationPointerDown ? (event) => onCalibrationPointerDown(event, field) : undefined} style={onCalibrationPointerDown ? { cursor: "move" } : undefined}>
-            <circle r={13 * markerScale} fill="transparent" />
+          <g key={field} transform={`translate(${point.px} ${point.py})`} onClick={(event) => event.stopPropagation()} onPointerDown={onCalibrationPointerDown ? (event) => onCalibrationPointerDown(event, field) : undefined} style={onCalibrationPointerDown ? { cursor: selectedCalibrationField === field ? "move" : "crosshair" } : undefined}>
+            <circle r={9 * markerScale} fill="transparent" />
             <line x1={-8 * markerScale} y1={0} x2={8 * markerScale} y2={0} stroke={selectedCalibrationField === field ? "#e45b35" : "#00B4D8"} strokeWidth={2 * markerScale} />
             <line x1={0} y1={-8 * markerScale} x2={0} y2={8 * markerScale} stroke={selectedCalibrationField === field ? "#e45b35" : "#00B4D8"} strokeWidth={2 * markerScale} />
             <circle r={3 * markerScale} fill={selectedCalibrationField === field ? "#e45b35" : "#00B4D8"} stroke="#fff" strokeWidth={1.5 * markerScale} />
@@ -171,9 +171,18 @@ export function DigitizerCanvas({
   function handleCalibrationPointerDown(event, field) {
     event.stopPropagation();
     if (mode !== "calibrate") return;
+    if (armedCalibrationField && armedCalibrationField !== field) {
+      const { x, y } = clientToImage(event.clientX, event.clientY);
+      onPickCalibrationPixel(armedCalibrationField, x, y);
+      svgRef.current?.focus();
+      return;
+    }
+    const alreadySelected = selectedCalibrationField === field;
     onSelectCalibrationPoint(field);
-    dragRef.current = { kind: "calibration", field };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if (alreadySelected) {
+      dragRef.current = { kind: "calibration", field };
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
     svgRef.current?.focus();
   }
 
@@ -225,7 +234,7 @@ export function DigitizerCanvas({
     }[event.key];
     if (!direction) return;
     event.preventDefault();
-    const step = event.shiftKey ? 10 : 1;
+    const step = event.shiftKey ? 1 : 0.1;
     onMoveCalibrationPoint(
       selectedCalibrationField,
       clamp(point.px + direction[0] * step, 0, imageWidth),

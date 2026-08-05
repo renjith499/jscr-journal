@@ -71,7 +71,7 @@ export function CalibrationPanel({ calibration, armedField, onArmField, onValueC
                 {label}
               </button>
               <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-400">
-                {hasPixel ? `pixel ${Math.round(point[coordKey])}` : isArmed ? "click on image…" : "not set"}
+                {hasPixel ? `pixel ${point[coordKey].toFixed(2)}` : isArmed ? "click on image…" : "not set"}
               </div>
               <input
                 type="number"
@@ -88,8 +88,8 @@ export function CalibrationPanel({ calibration, armedField, onArmField, onValueC
       <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
         Click a button above, then click the matching reference point on the image. Enter the true axis value for
         each point on the right. Point selection advances automatically from X start to X end, Y start and Y end.
-        Click any existing calibration marker to select it, then drag it or use the arrow keys for 1-pixel movement
-        (Shift + arrow moves 10 pixels).
+        Click any existing calibration marker to select it; click and drag it again to move. Arrow keys nudge by
+        0.1 pixel for high precision (Shift + arrow moves 1 pixel).
       </p>
     </div>
   );

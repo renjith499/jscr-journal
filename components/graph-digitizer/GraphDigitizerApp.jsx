@@ -186,10 +186,10 @@ export function GraphDigitizerApp() {
       const { calibration, datasets } = recalculateCalibration(nextCal, current.datasets);
       return { ...current, calibration, datasets };
     });
-    setSelectedCalibrationField(field);
     const sequence = ["xStart", "xEnd", "yStart", "yEnd"];
     const nextField = sequence[sequence.indexOf(field) + 1] || null;
     setArmedField(nextField);
+    setSelectedCalibrationField(nextField);
     if (!nextField) {
       setTimeout(() => handleAddDataset(), 0);
     }
