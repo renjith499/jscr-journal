@@ -189,7 +189,9 @@ export function GraphDigitizerApp() {
     const sequence = ["xStart", "xEnd", "yStart", "yEnd"];
     const nextField = sequence[sequence.indexOf(field) + 1] || null;
     setArmedField(nextField);
-    setSelectedCalibrationField(nextField);
+    // Keep keyboard focus on the point that was just placed. The next click
+    // transfers arrow-key control to the newly created calibration point.
+    setSelectedCalibrationField(field);
     if (!nextField) {
       setTimeout(() => handleAddDataset(), 0);
     }
