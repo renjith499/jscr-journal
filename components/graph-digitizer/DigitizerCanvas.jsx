@@ -80,6 +80,7 @@ export function DigitizerCanvas({
   const [view, setView] = useState({ zoom: 1, pan: { x: 0, y: 0 } });
   const [hoverPos, setHoverPos] = useState(null);
   const dragRef = useRef(null);
+  const suppressClickRef = useRef(false);
 
   const fitToWindow = useCallback(() => {
     const container = containerRef.current;
@@ -141,6 +142,10 @@ export function DigitizerCanvas({
   }, [imageDataUrl]);
 
   function handleBackgroundClick(event) {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
     if (!imageDataUrl) return;
     const { x, y } = clientToImage(event.clientX, event.clientY);
     if (mode === "calibrate" && armedCalibrationField) {
@@ -173,6 +178,13 @@ export function DigitizerCanvas({
     if (mode !== "calibrate") return;
     if (armedCalibrationField && armedCalibrationField !== field) {
       const { x, y } = clientToImage(event.clientX, event.clientY);
+      // This pointer-down places the armed point even though another marker is
+      // underneath it. Ignore the click event that follows the same gesture so
+      // it cannot also place the next calibration point at this coordinate.
+      suppressClickRef.current = true;
+      setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 0);
       onPickCalibrationPixel(armedCalibrationField, x, y);
       svgRef.current?.focus();
       return;
