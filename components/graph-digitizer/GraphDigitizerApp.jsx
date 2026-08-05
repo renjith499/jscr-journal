@@ -47,6 +47,7 @@ export function GraphDigitizerApp() {
   const [mode, setMode] = useState("pan");
   const [armedField, setArmedField] = useState(null);
   const [selectedCalibrationField, setSelectedCalibrationField] = useState(null);
+  const lastCalibrationPickAtRef = useRef(-Infinity);
 
   const [capturedEmail, setCapturedEmail] = useState(() =>
     typeof window === "undefined" ? null : sessionStorage.getItem(EMAIL_SESSION_KEY)
@@ -178,6 +179,12 @@ export function GraphDigitizerApp() {
   }
 
   function handlePickCalibrationPixel(field, x, y) {
+    const pickedAt = typeof performance === "undefined" ? Date.now() : performance.now();
+    // Overlapping SVG calibration markers can emit more than one callback for
+    // a single pointer gesture after React advances to the next field. Accept
+    // only one calibration commit per physical click/tap.
+    if (pickedAt - lastCalibrationPickAtRef.current < 250) return;
+    lastCalibrationPickAtRef.current = pickedAt;
     setProject((current) => {
       const nextCal = {
         ...current.calibration,
