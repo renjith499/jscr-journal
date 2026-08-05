@@ -17,7 +17,7 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function SceneContent({ imageDataUrl, imageWidth, imageHeight, calibration, datasets, markerScale, mode, selectedCalibrationField, onCalibrationPointerDown, onPointPointerDown }) {
+function SceneContent({ imageDataUrl, imageWidth, imageHeight, calibration, datasets, markerScale, mode, selectedCalibrationField, selectedCurvePoint, onCalibrationPointerDown, onPointPointerDown }) {
   return (
     <>
       <image href={imageDataUrl} x={0} y={0} width={imageWidth} height={imageHeight} />
@@ -26,7 +26,7 @@ function SceneContent({ imageDataUrl, imageWidth, imageHeight, calibration, data
         const point = calibration[field];
         if (point.px === null || point.px === undefined || point.py === null || point.py === undefined) return null;
         return (
-          <g key={field} transform={`translate(${point.px} ${point.py})`} onClick={(event) => event.stopPropagation()} onPointerDown={onCalibrationPointerDown ? (event) => onCalibrationPointerDown(event, field) : undefined} style={onCalibrationPointerDown ? { cursor: selectedCalibrationField === field ? "move" : "crosshair" } : undefined}>
+          <g key={field} transform={`translate(${point.px} ${point.py})`} onClick={(event) => event.stopPropagation()} onPointerDown={onCalibrationPointerDown ? (event) => onCalibrationPointerDown(event, field) : undefined} style={{ pointerEvents: mode === "calibrate" ? "auto" : "none", cursor: selectedCalibrationField === field ? "move" : "crosshair" }}>
             <circle r={9 * markerScale} fill="transparent" />
             <line x1={-8 * markerScale} y1={0} x2={8 * markerScale} y2={0} stroke={selectedCalibrationField === field ? "#e45b35" : "#00B4D8"} strokeWidth={2 * markerScale} />
             <line x1={0} y1={-8 * markerScale} x2={0} y2={8 * markerScale} stroke={selectedCalibrationField === field ? "#e45b35" : "#00B4D8"} strokeWidth={2 * markerScale} />
@@ -48,7 +48,7 @@ function SceneContent({ imageDataUrl, imageWidth, imageHeight, calibration, data
               cy={point.pixelY}
               r={5 * markerScale}
               fill={dataset.color}
-              stroke="#fff"
+              stroke={selectedCurvePoint?.pointId === point.pointId && selectedCurvePoint?.datasetId === dataset.datasetId ? "#e45b35" : "#fff"}
               strokeWidth={2 * markerScale}
               onPointerDown={onPointPointerDown ? (event) => onPointPointerDown(event, dataset.datasetId, point.pointId) : undefined}
               style={onPointPointerDown ? { cursor: mode === "move" ? "grab" : mode === "delete" ? "not-allowed" : "default" } : undefined}
@@ -79,6 +79,7 @@ export function DigitizerCanvas({
   const svgRef = useRef(null);
   const [view, setView] = useState({ zoom: 1, pan: { x: 0, y: 0 } });
   const [hoverPos, setHoverPos] = useState(null);
+  const [selectedCurvePoint, setSelectedCurvePoint] = useState(null);
   const dragRef = useRef(null);
   const suppressClickRef = useRef(false);
 
@@ -152,7 +153,9 @@ export function DigitizerCanvas({
       onPickCalibrationPixel(armedCalibrationField, x, y);
       svgRef.current?.focus();
     } else if (mode === "add") {
-      onAddPoint(x, y);
+      const addedPoint = onAddPoint(x, y);
+      if (addedPoint) setSelectedCurvePoint(addedPoint);
+      svgRef.current?.focus();
     }
   }
 
@@ -167,6 +170,10 @@ export function DigitizerCanvas({
     if (mode === "delete") {
       onDeletePoint(datasetId, pointId);
       return;
+    }
+    if (mode === "add" || mode === "move") {
+      setSelectedCurvePoint({ datasetId, pointId });
+      svgRef.current?.focus();
     }
     if (mode !== "move") return;
     dragRef.current = { kind: "point", datasetId, pointId };
@@ -235,9 +242,6 @@ export function DigitizerCanvas({
   const magMarkerScale = 1 / magZoom;
 
   function handleKeyDown(event) {
-    if (mode !== "calibrate" || !selectedCalibrationField) return;
-    const point = calibration[selectedCalibrationField];
-    if (point?.px === null || point?.py === null) return;
     const direction = {
       ArrowLeft: [-1, 0],
       ArrowRight: [1, 0],
@@ -245,13 +249,30 @@ export function DigitizerCanvas({
       ArrowDown: [0, 1],
     }[event.key];
     if (!direction) return;
-    event.preventDefault();
     const step = event.shiftKey ? 1 : 0.1;
-    onMoveCalibrationPoint(
-      selectedCalibrationField,
-      clamp(point.px + direction[0] * step, 0, imageWidth),
-      clamp(point.py + direction[1] * step, 0, imageHeight),
-    );
+    if (mode === "calibrate" && selectedCalibrationField) {
+      const point = calibration[selectedCalibrationField];
+      if (point?.px === null || point?.py === null) return;
+      event.preventDefault();
+      onMoveCalibrationPoint(
+        selectedCalibrationField,
+        clamp(point.px + direction[0] * step, 0, imageWidth),
+        clamp(point.py + direction[1] * step, 0, imageHeight),
+      );
+      return;
+    }
+    if ((mode === "add" || mode === "move") && selectedCurvePoint) {
+      const dataset = datasets.find((item) => item.datasetId === selectedCurvePoint.datasetId);
+      const point = dataset?.points.find((item) => item.pointId === selectedCurvePoint.pointId);
+      if (!point) return;
+      event.preventDefault();
+      onMovePoint(
+        selectedCurvePoint.datasetId,
+        selectedCurvePoint.pointId,
+        clamp(point.pixelX + direction[0] * step, 0, imageWidth),
+        clamp(point.pixelY + direction[1] * step, 0, imageHeight),
+      );
+    }
   }
 
   return (
@@ -290,6 +311,7 @@ export function DigitizerCanvas({
               markerScale={markerScale}
               mode={mode}
               selectedCalibrationField={selectedCalibrationField}
+              selectedCurvePoint={selectedCurvePoint}
               onCalibrationPointerDown={handleCalibrationPointerDown}
               onPointPointerDown={handlePointPointerDown}
             />

@@ -5,7 +5,7 @@ import { Crosshair, Hand, MousePointer2, Ruler, Trash2 } from "lucide-react";
 const MODES = [
   { id: "pan", label: "Pan", icon: Hand, hint: "Drag to pan, scroll to zoom" },
   { id: "calibrate", label: "Calibrate", icon: Ruler, hint: "Set the four axis reference points" },
-  { id: "add", label: "Add Points", icon: Crosshair, hint: "Click on the curve to digitize points" },
+  { id: "add", label: "Add Points", icon: Crosshair, hint: "Click to add; arrow keys fine-tune the selected point" },
   { id: "move", label: "Move", icon: MousePointer2, hint: "Drag existing points" },
   { id: "delete", label: "Delete", icon: Trash2, hint: "Click a point to remove it" },
 ];

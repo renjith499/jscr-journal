@@ -231,15 +231,17 @@ export function GraphDigitizerApp() {
   }
 
   function handleAddPoint(imgX, imgY) {
-    if (!activeDatasetId) return;
+    if (!activeDatasetId) return null;
     const { x, y } = pixelToGraph(project.calibration, imgX, imgY);
+    const pointId = `pt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     updateDataset(activeDatasetId, (dataset) => ({
       ...dataset,
       points: sortedPoints([
         ...dataset.points,
-        { pointId: `pt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, pixelX: imgX, pixelY: imgY, graphX: x, graphY: y },
+        { pointId, pixelX: imgX, pixelY: imgY, graphX: x, graphY: y },
       ]),
     }));
+    return { datasetId: activeDatasetId, pointId };
   }
 
   function handleMovePoint(datasetId, pointId, imgX, imgY) {
