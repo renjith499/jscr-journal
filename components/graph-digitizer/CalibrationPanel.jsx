@@ -87,7 +87,9 @@ export function CalibrationPanel({ calibration, armedField, onArmField, onValueC
       </div>
       <p className="mt-3 text-xs leading-5 text-slate-500 dark:text-slate-400">
         Click a button above, then click the matching reference point on the image. Enter the true axis value for
-        each point on the right.
+        each point on the right. Point selection advances automatically from X start to X end, Y start and Y end.
+        Click any existing calibration marker to select it, then drag it or use the arrow keys for 1-pixel movement
+        (Shift + arrow moves 10 pixels).
       </p>
     </div>
   );

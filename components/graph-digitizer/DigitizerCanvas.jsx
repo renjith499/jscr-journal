@@ -17,7 +17,7 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function SceneContent({ imageDataUrl, imageWidth, imageHeight, calibration, datasets, markerScale, mode, onPointPointerDown }) {
+function SceneContent({ imageDataUrl, imageWidth, imageHeight, calibration, datasets, markerScale, mode, selectedCalibrationField, onCalibrationPointerDown, onPointPointerDown }) {
   return (
     <>
       <image href={imageDataUrl} x={0} y={0} width={imageWidth} height={imageHeight} />
@@ -26,10 +26,11 @@ function SceneContent({ imageDataUrl, imageWidth, imageHeight, calibration, data
         const point = calibration[field];
         if (point.px === null || point.px === undefined || point.py === null || point.py === undefined) return null;
         return (
-          <g key={field} transform={`translate(${point.px} ${point.py})`}>
-            <line x1={-8 * markerScale} y1={0} x2={8 * markerScale} y2={0} stroke="#00B4D8" strokeWidth={2 * markerScale} />
-            <line x1={0} y1={-8 * markerScale} x2={0} y2={8 * markerScale} stroke="#00B4D8" strokeWidth={2 * markerScale} />
-            <circle r={3 * markerScale} fill="#00B4D8" stroke="#fff" strokeWidth={1.5 * markerScale} />
+          <g key={field} transform={`translate(${point.px} ${point.py})`} onClick={(event) => event.stopPropagation()} onPointerDown={onCalibrationPointerDown ? (event) => onCalibrationPointerDown(event, field) : undefined} style={onCalibrationPointerDown ? { cursor: "move" } : undefined}>
+            <circle r={13 * markerScale} fill="transparent" />
+            <line x1={-8 * markerScale} y1={0} x2={8 * markerScale} y2={0} stroke={selectedCalibrationField === field ? "#e45b35" : "#00B4D8"} strokeWidth={2 * markerScale} />
+            <line x1={0} y1={-8 * markerScale} x2={0} y2={8 * markerScale} stroke={selectedCalibrationField === field ? "#e45b35" : "#00B4D8"} strokeWidth={2 * markerScale} />
+            <circle r={3 * markerScale} fill={selectedCalibrationField === field ? "#e45b35" : "#00B4D8"} stroke="#fff" strokeWidth={1.5 * markerScale} />
             <text x={10 * markerScale} y={-10 * markerScale} fontSize={12 * markerScale} fill="#00B4D8" fontWeight="bold">
               {label}
             </text>
@@ -66,7 +67,10 @@ export function DigitizerCanvas({
   datasets,
   mode,
   armedCalibrationField,
+  selectedCalibrationField,
   onPickCalibrationPixel,
+  onSelectCalibrationPoint,
+  onMoveCalibrationPoint,
   onAddPoint,
   onMovePoint,
   onDeletePoint,
@@ -141,6 +145,7 @@ export function DigitizerCanvas({
     const { x, y } = clientToImage(event.clientX, event.clientY);
     if (mode === "calibrate" && armedCalibrationField) {
       onPickCalibrationPixel(armedCalibrationField, x, y);
+      svgRef.current?.focus();
     } else if (mode === "add") {
       onAddPoint(x, y);
     }
@@ -163,6 +168,15 @@ export function DigitizerCanvas({
     event.currentTarget.setPointerCapture(event.pointerId);
   }
 
+  function handleCalibrationPointerDown(event, field) {
+    event.stopPropagation();
+    if (mode !== "calibrate") return;
+    onSelectCalibrationPoint(field);
+    dragRef.current = { kind: "calibration", field };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    svgRef.current?.focus();
+  }
+
   function handlePointerMove(event) {
     if (imageDataUrl && MAGNIFIER_MODES.has(mode)) {
       setHoverPos(clientToImage(event.clientX, event.clientY));
@@ -180,6 +194,9 @@ export function DigitizerCanvas({
     } else if (drag.kind === "point") {
       const { x, y } = clientToImage(event.clientX, event.clientY);
       onMovePoint(drag.datasetId, drag.pointId, x, y);
+    } else if (drag.kind === "calibration") {
+      const { x, y } = clientToImage(event.clientX, event.clientY);
+      onMoveCalibrationPoint(drag.field, x, y);
     }
   }
 
@@ -196,6 +213,26 @@ export function DigitizerCanvas({
   const magHalf = MAGNIFIER_SIZE / 2;
   const magMarkerScale = 1 / magZoom;
 
+  function handleKeyDown(event) {
+    if (mode !== "calibrate" || !selectedCalibrationField) return;
+    const point = calibration[selectedCalibrationField];
+    if (point?.px === null || point?.py === null) return;
+    const direction = {
+      ArrowLeft: [-1, 0],
+      ArrowRight: [1, 0],
+      ArrowUp: [0, -1],
+      ArrowDown: [0, 1],
+    }[event.key];
+    if (!direction) return;
+    event.preventDefault();
+    const step = event.shiftKey ? 10 : 1;
+    onMoveCalibrationPoint(
+      selectedCalibrationField,
+      clamp(point.px + direction[0] * step, 0, imageWidth),
+      clamp(point.py + direction[1] * step, 0, imageHeight),
+    );
+  }
+
   return (
     <div
       ref={containerRef}
@@ -210,6 +247,8 @@ export function DigitizerCanvas({
       {imageDataUrl && (
         <svg
           ref={svgRef}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
           className="h-full w-full touch-none select-none"
           onClick={handleBackgroundClick}
           onPointerDown={handleBackgroundPointerDown}
@@ -229,6 +268,8 @@ export function DigitizerCanvas({
               datasets={datasets}
               markerScale={markerScale}
               mode={mode}
+              selectedCalibrationField={selectedCalibrationField}
+              onCalibrationPointerDown={handleCalibrationPointerDown}
               onPointPointerDown={handlePointPointerDown}
             />
           </g>
@@ -237,7 +278,7 @@ export function DigitizerCanvas({
 
       {showMagnifier && (
         <div
-          className="pointer-events-none absolute right-3 top-3 overflow-hidden rounded-full border-2 border-accent bg-slate-200 shadow-card dark:bg-slate-800"
+          className="pointer-events-none fixed right-6 top-24 z-50 overflow-hidden rounded-full border-2 border-accent bg-slate-200 shadow-card dark:bg-slate-800"
           style={{ width: MAGNIFIER_SIZE, height: MAGNIFIER_SIZE }}
         >
           <svg width={MAGNIFIER_SIZE} height={MAGNIFIER_SIZE}>

@@ -46,6 +46,7 @@ export function GraphDigitizerApp() {
   const [activeDatasetId, setActiveDatasetId] = useState(null);
   const [mode, setMode] = useState("pan");
   const [armedField, setArmedField] = useState(null);
+  const [selectedCalibrationField, setSelectedCalibrationField] = useState(null);
 
   const [capturedEmail, setCapturedEmail] = useState(() =>
     typeof window === "undefined" ? null : sessionStorage.getItem(EMAIL_SESSION_KEY)
@@ -116,6 +117,8 @@ export function GraphDigitizerApp() {
     }));
     setActiveDatasetId(null);
     setMode("calibrate");
+    setArmedField("xStart");
+    setSelectedCalibrationField(null);
   }
 
   function handleAddDataset() {
@@ -160,11 +163,18 @@ export function GraphDigitizerApp() {
       return;
     }
     setMode(nextMode);
+    if (nextMode === "calibrate" && !armedField) {
+      const firstMissing = ["xStart", "xEnd", "yStart", "yEnd"].find(
+        (field) => project.calibration[field].px === null,
+      );
+      setArmedField(firstMissing || "xStart");
+    }
   }
 
   function handleArmField(field) {
     setMode("calibrate");
     setArmedField(field);
+    setSelectedCalibrationField(field);
   }
 
   function handlePickCalibrationPixel(field, x, y) {
@@ -176,7 +186,30 @@ export function GraphDigitizerApp() {
       const { calibration, datasets } = recalculateCalibration(nextCal, current.datasets);
       return { ...current, calibration, datasets };
     });
-    setArmedField(null);
+    setSelectedCalibrationField(field);
+    const sequence = ["xStart", "xEnd", "yStart", "yEnd"];
+    const nextField = sequence[sequence.indexOf(field) + 1] || null;
+    setArmedField(nextField);
+    if (!nextField) {
+      setTimeout(() => handleAddDataset(), 0);
+    }
+  }
+
+  function handleMoveCalibrationPoint(field, x, y) {
+    setProject((current) => {
+      const nextCal = {
+        ...current.calibration,
+        [field]: { ...current.calibration[field], px: x, py: y },
+      };
+      const { calibration, datasets } = recalculateCalibration(nextCal, current.datasets);
+      return { ...current, calibration, datasets };
+    });
+    setSelectedCalibrationField(field);
+  }
+
+  function handleSelectCalibrationPoint(field) {
+    setMode("calibrate");
+    setSelectedCalibrationField(field);
   }
 
   function handleCalibrationValueChange(field, value) {
@@ -306,7 +339,10 @@ export function GraphDigitizerApp() {
             datasets={project.datasets}
             mode={mode}
             armedCalibrationField={armedField}
+            selectedCalibrationField={selectedCalibrationField}
             onPickCalibrationPixel={handlePickCalibrationPixel}
+            onSelectCalibrationPoint={handleSelectCalibrationPoint}
+            onMoveCalibrationPoint={handleMoveCalibrationPoint}
             onAddPoint={handleAddPoint}
             onMovePoint={handleMovePoint}
             onDeletePoint={handleDeletePoint}
