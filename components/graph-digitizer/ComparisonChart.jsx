@@ -22,6 +22,7 @@ export function ComparisonChart({ series, xLabel, yLabel, referenceId }) {
   const isDark = useIsDarkMode();
   const svgRef = useRef(null);
   const [hover, setHover] = useState(null);
+  const [showInterpolated, setShowInterpolated] = useState(true);
 
   const visibleSeries = series.filter((s) => s.visible && s.points.length > 0);
   const reference = visibleSeries.find((s) => s.id === referenceId) || visibleSeries[0];
@@ -77,17 +78,19 @@ export function ComparisonChart({ series, xLabel, yLabel, referenceId }) {
         }
       });
     });
-    interpolatedSeries.forEach((s) => {
-      s.points.forEach((p) => {
-        const dx = xScale(p.x) - mx;
-        const dy = yScale(p.y) - my;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < closestDist) {
-          closestDist = dist;
-          closest = { series: s, point: p, sx: xScale(p.x), sy: yScale(p.y), interpolated: true };
-        }
+    if (showInterpolated) {
+      interpolatedSeries.forEach((s) => {
+        s.points.forEach((p) => {
+          const dx = xScale(p.x) - mx;
+          const dy = yScale(p.y) - my;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closest = { series: s, point: p, sx: xScale(p.x), sy: yScale(p.y), interpolated: true };
+          }
+        });
       });
-    });
+    }
     setHover(closest);
   }
 
@@ -109,6 +112,21 @@ export function ComparisonChart({ series, xLabel, yLabel, referenceId }) {
           --gd-text-secondary: ${CHART_CHROME.textSecondaryDark}; --gd-muted: ${CHART_CHROME.mutedDark};
           --gd-grid: ${CHART_CHROME.gridDark}; --gd-baseline: ${CHART_CHROME.baselineDark}; }
       `}</style>
+
+      <div className="mb-2 flex justify-end">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300">
+          <input
+            type="checkbox"
+            checked={showInterpolated}
+            onChange={(event) => {
+              setShowInterpolated(event.target.checked);
+              if (!event.target.checked && hover?.interpolated) setHover(null);
+            }}
+            className="h-3.5 w-3.5 accent-amber-600"
+          />
+          Show interpolated points
+        </label>
+      </div>
 
       <svg
         ref={svgRef}
@@ -174,7 +192,7 @@ export function ComparisonChart({ series, xLabel, yLabel, referenceId }) {
           );
         })}
 
-        {interpolatedSeries.map((s) =>
+        {showInterpolated && interpolatedSeries.map((s) =>
           s.points.map((p) => {
             const size = hover?.point === p ? 6 : 4.5;
             return (
@@ -186,6 +204,7 @@ export function ComparisonChart({ series, xLabel, yLabel, referenceId }) {
                 height={size * 2}
                 rx={1}
                 fill={isDark ? "#fbbf24" : "#d97706"}
+                opacity={0.55}
                 stroke="var(--gd-surface)"
                 strokeWidth={1.5}
                 transform={`rotate(45 ${xScale(p.x)} ${yScale(p.y)})`}
@@ -218,11 +237,11 @@ export function ComparisonChart({ series, xLabel, yLabel, referenceId }) {
           ))}
         </div>
       )}
-      {interpolatedSeries.some((item) => item.points.length) && (
+      {showInterpolated && interpolatedSeries.some((item) => item.points.length) && (
         <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-slate-100 pt-3 text-xs font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">
           <span className="font-bold text-primary dark:text-white">Point type:</span>
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-slate-500" />Original sampled point</span>
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rotate-45 rounded-[1px] bg-amber-600 dark:bg-amber-400" />Interpolated comparison point</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rotate-45 rounded-[1px] bg-amber-600 opacity-[0.55] dark:bg-amber-400" />Interpolated comparison point (55% opacity)</span>
         </div>
       )}
     </div>
