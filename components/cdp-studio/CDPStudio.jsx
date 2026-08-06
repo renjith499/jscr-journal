@@ -323,7 +323,16 @@ export function CDPStudio() {
               {m.text}
             </pre>
             <div className="mt-5 rounded-lg border border-cyan-200 bg-cyan-50 p-4 dark:border-cyan-900 dark:bg-cyan-950">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="grid gap-4 sm:grid-cols-2 sm:items-end">
+                <label className="block text-xs font-bold text-slate-600 dark:text-cyan-100">
+                  Material name
+                  <input
+                    className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 dark:border-cyan-800 dark:bg-slate-950 dark:text-white"
+                    value={i.name}
+                    onChange={(event) => set("name", event.target.value)}
+                    placeholder="CDP_40MPa"
+                  />
+                </label>
                 <label className="block flex-1 text-xs font-bold text-slate-600 dark:text-cyan-100">
                   CAE / project name
                   <input
@@ -335,7 +344,7 @@ export function CDPStudio() {
                 </label>
                 <button
                   onClick={() => requireEmailThen(downloadLibrary)}
-                  className="flex items-center justify-center gap-1 rounded-md bg-primary px-4 py-2.5 text-xs font-bold text-white"
+                  className="flex items-center justify-center gap-1 rounded-md bg-primary px-4 py-2.5 text-xs font-bold text-white sm:col-span-2 sm:justify-self-end"
                 >
                   <Download size={14} />
                   Download .lib
