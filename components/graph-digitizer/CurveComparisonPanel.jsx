@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { Info } from "lucide-react";
 import { compareCurves, COMPARISON_METHOD_NOTES } from "@/lib/graph-digitizer/comparison";
+import { CopyButton } from "./CopyButton";
 
 function fmt(value, digits = 4) {
   if (value === null || value === undefined || !Number.isFinite(value)) return "—";
@@ -47,6 +48,13 @@ export function CurveComparisonPanel({ series, xLabel, yLabel, referenceId, onRe
         </label>
       </div>
 
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Summary</p>
+        <CopyButton
+          headers={["Curve", "RMSE", "MAE", "Max Abs Error", "Area Error", "Similarity %", "Points Compared", "Points Skipped"]}
+          rows={results.map(({ curve, summary }) => [curve.name, summary.rmse, summary.mae, summary.maxAbsError, summary.areaError, summary.similarity, summary.compared, summary.skipped])}
+        />
+      </div>
       <div className="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-700">
         <table className="w-full min-w-[560px] text-left text-xs">
           <thead className="bg-slate-50 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
@@ -81,6 +89,13 @@ export function CurveComparisonPanel({ series, xLabel, yLabel, referenceId, onRe
         </table>
       </div>
 
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">Point-wise</p>
+        <CopyButton
+          headers={["Curve", xLabel, `${yLabel} (ref)`, `${yLabel} (interp.)`, "Error", "Abs Error", "Status"]}
+          rows={results.flatMap(({ curve, rows }) => rows.map((row) => [curve.name, row.x, row.yRef, row.yInterp, row.error, row.absError, row.status]))}
+        />
+      </div>
       <div className="max-h-64 overflow-auto rounded-md border border-slate-200 dark:border-slate-700">
         <table className="w-full min-w-[640px] text-left text-xs">
           <thead className="sticky top-0 bg-slate-50 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
