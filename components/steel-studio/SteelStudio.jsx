@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, Clipboard, Download, TriangleAlert } from "lucide-react";
 import { defaults, gradePresets, generate } from "@/lib/steel-studio/model";
+import { abaqusLibraryFileName, generateAbaqus2020Library } from "@/lib/steel-studio/abaqus-library";
 import { SteelEmailGateModal } from "./SteelEmailGateModal";
 import { SteelReviewPromptModal } from "./SteelReviewPromptModal";
 
@@ -72,6 +73,7 @@ function Plot({ points }) {
 
 export function SteelStudio() {
   const [i, setI] = useState(defaults);
+  const [projectName, setProjectName] = useState("Steel_Project");
   const [view, setView] = useState("curves");
   const [copied, setCopied] = useState(false);
   const [capturedEmail, setCapturedEmail] = useState(() =>
@@ -99,6 +101,8 @@ export function SteelStudio() {
     setTimeout(() => URL.revokeObjectURL(url), 0);
   }
   const download = () => save(m.text, `${i.name}.inp`);
+  const downloadLibrary = () =>
+    save(generateAbaqus2020Library(i, m, projectName), abaqusLibraryFileName(projectName), "application/octet-stream");
 
   function maybePromptReview() {
     if (typeof window === "undefined" || sessionStorage.getItem(REVIEW_SHOWN_SESSION_KEY)) return;
@@ -231,6 +235,41 @@ export function SteelStudio() {
               </div>
             </div>
             <pre className="max-h-[620px] overflow-auto rounded-md bg-slate-950 p-5 text-xs leading-6 text-cyan-100">{m.text}</pre>
+            <div className="mt-5 rounded-lg border border-cyan-200 bg-cyan-50 p-4 dark:border-cyan-900 dark:bg-cyan-950">
+              <div className="grid gap-4 sm:grid-cols-2 sm:items-end">
+                <label className="block text-xs font-bold text-slate-600 dark:text-cyan-100">
+                  Material name
+                  <input
+                    className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 dark:border-cyan-800 dark:bg-slate-950 dark:text-white"
+                    value={i.name}
+                    onChange={(event) => set("name", event.target.value)}
+                    placeholder="Steel_S355"
+                  />
+                </label>
+                <label className="block flex-1 text-xs font-bold text-slate-600 dark:text-cyan-100">
+                  CAE / project name
+                  <input
+                    className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 dark:border-cyan-800 dark:bg-slate-950 dark:text-white"
+                    value={projectName}
+                    onChange={(event) => setProjectName(event.target.value)}
+                    placeholder="Steel_Project"
+                  />
+                </label>
+                <button
+                  onClick={() => requireEmailThen(downloadLibrary)}
+                  className="flex items-center justify-center gap-1 rounded-md bg-primary px-4 py-2.5 text-xs font-bold text-white sm:col-span-2 sm:justify-self-end"
+                >
+                  <Download size={14} />
+                  Download .lib
+                </button>
+              </div>
+              <p className="mt-3 text-xs leading-5 text-slate-600 dark:text-cyan-100">
+                Additional Abaqus 2020 material-library export. In Property, open the Material Library tab and add
+                the generated material to your model. The library filename uses the project name; the material name
+                remains <b>{i.name}</b>. Unlike the CDP Calculator's library export, this format hasn't been
+                verified against a CAE-created reference file yet — test-import it before relying on it.
+              </p>
+            </div>
           </div>
         )}
 
