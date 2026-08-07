@@ -55,6 +55,10 @@ function Plot({ points, label, color }) {
     g.strokeStyle = "#dbe3e8";
     g.fillStyle = "#64748b";
     g.font = "11px monospace";
+    // The canvas 2D context persists across redraws (same element), and the
+    // axis-label fillText below sets textAlign="center" — without resetting
+    // it here, every redraw after the first center-clips these y-axis labels.
+    g.textAlign = "left";
     for (let q = 0; q < 5; q++) {
       const y = 18 + ((h - 58) * q) / 4;
       g.beginPath();
