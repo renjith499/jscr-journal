@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Calculator, LineChart, ShieldCheck } from "lucide-react";
+import { MaterialLibraryPanel } from "@/components/material-models/MaterialLibraryPanel";
 
 export const metadata = {
   title: "Research Tools | JSCR",
@@ -76,6 +77,7 @@ export default function ToolsPage() {
                 </Link>
               ))}
             </div>
+            {category.title === "Material Models" && <MaterialLibraryPanel />}
           </div>
         ))}
 
