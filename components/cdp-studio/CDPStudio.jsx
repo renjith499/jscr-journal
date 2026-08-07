@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  BookmarkPlus,
   CheckCircle2,
   Clipboard,
   Download,
@@ -12,6 +13,7 @@ import {
   abaqusLibraryFileName,
   generateAbaqus2020Library,
 } from "@/lib/cdp-studio/abaqus-library";
+import { addMaterial } from "@/lib/material-models/library-store";
 import { CDPEmailGateModal } from "./CDPEmailGateModal";
 import { CDPReviewPromptModal } from "./CDPReviewPromptModal";
 
@@ -94,11 +96,17 @@ export function CDPStudio() {
     ),
     [showEmailGate, setShowEmailGate] = useState(false),
     [showReviewPrompt, setShowReviewPrompt] = useState(false),
+    [savedToLibrary, setSavedToLibrary] = useState(false),
     pendingDownloadRef = useRef(null),
     m = useMemo(() => generate(i), [i]),
     set = (k, v) => setI((x) => ({ ...x, [k]: v })),
     auto = () =>
       setI((x) => ({ ...x, ...estimates(x.fc), name: `CDP_${x.fc}MPa` })),
+    addToLibrary = () => {
+      addMaterial("cdp", i.name, i);
+      setSavedToLibrary(true);
+      setTimeout(() => setSavedToLibrary(false), 1500);
+    },
     save = (content, fileName, type = "text/plain") => {
       const a = document.createElement("a");
       const url = URL.createObjectURL(new Blob([content], { type }));
@@ -303,6 +311,14 @@ export function CDPStudio() {
                 </p>
               </div>
               <div className="flex gap-2">
+                <button
+                  onClick={addToLibrary}
+                  title="Save this material's inputs locally so it can be bundled with other materials from the Tools page"
+                  className="flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-bold"
+                >
+                  <BookmarkPlus size={14} />
+                  {savedToLibrary ? "Saved" : "Add to Library"}
+                </button>
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(m.text);

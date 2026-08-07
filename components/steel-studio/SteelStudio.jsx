@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, Clipboard, Download, TriangleAlert } from "lucide-react";
+import { BookmarkPlus, CheckCircle2, Clipboard, Download, TriangleAlert } from "lucide-react";
 import { defaults, gradePresets, generate } from "@/lib/steel-studio/model";
 import { abaqusLibraryFileName, generateAbaqus2020Library } from "@/lib/steel-studio/abaqus-library";
+import { addMaterial } from "@/lib/material-models/library-store";
 import { SteelEmailGateModal } from "./SteelEmailGateModal";
 import { SteelReviewPromptModal } from "./SteelReviewPromptModal";
 
@@ -81,10 +82,17 @@ export function SteelStudio() {
   );
   const [showEmailGate, setShowEmailGate] = useState(false);
   const [showReviewPrompt, setShowReviewPrompt] = useState(false);
+  const [savedToLibrary, setSavedToLibrary] = useState(false);
   const pendingDownloadRef = useRef(null);
 
   const m = useMemo(() => generate(i), [i]);
   const set = (k, v) => setI((x) => ({ ...x, [k]: v }));
+
+  function addToLibrary() {
+    addMaterial("steel", i.name, i);
+    setSavedToLibrary(true);
+    setTimeout(() => setSavedToLibrary(false), 1500);
+  }
 
   function applyPreset(key) {
     const preset = gradePresets.find((g) => g.key === key);
@@ -214,6 +222,14 @@ export function SteelStudio() {
                 <p className="text-xs text-slate-500">N–mm–MPa–tonne unit system</p>
               </div>
               <div className="flex gap-2">
+                <button
+                  onClick={addToLibrary}
+                  title="Save this material's inputs locally so it can be bundled with other materials from the Tools page"
+                  className="flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-bold"
+                >
+                  <BookmarkPlus size={14} />
+                  {savedToLibrary ? "Saved" : "Add to Library"}
+                </button>
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(m.text);
