@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   AlertTriangle,
+  Calculator,
   CheckCircle2,
   Download,
   FlaskConical,
@@ -304,10 +305,21 @@ function download(content, name, type = "text/plain") {
 
 export function CompositeCalculator() {
   const [input, setInput] = useState(defaults);
+  const [calculatedInput, setCalculatedInput] = useState(defaults);
   const [tab, setTab] = useState("results");
   const [comparisonProperty, setComparisonProperty] = useState("E2");
-  const model = useMemo(() => calculateComposite(input), [input]);
-  const comparisons = useMemo(() => calculateAllMethods(input), [input]);
+  const model = useMemo(
+    () => calculateComposite(calculatedInput),
+    [calculatedInput],
+  );
+  const comparisons = useMemo(
+    () => calculateAllMethods(calculatedInput),
+    [calculatedInput],
+  );
+  const calculationPending = useMemo(
+    () => JSON.stringify(input) !== JSON.stringify(calculatedInput),
+    [input, calculatedInput],
+  );
   const updateConstituent = (side, key, value) =>
     setInput((current) => ({
       ...current,
@@ -333,7 +345,10 @@ export function CompositeCalculator() {
       )
       .join("\n");
   };
-  const safeName = (input.name || "Composite").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeName = (calculatedInput.name || "Composite").replace(
+    /[^a-zA-Z0-9_-]/g,
+    "_",
+  );
   return (
     <div className="space-y-6">
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
@@ -429,6 +444,30 @@ export function CompositeCalculator() {
           onChange={(key, value) => updateConstituent("matrix", key, value)}
         />
       </div>
+      <section className="sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-300 bg-white/95 p-4 shadow-lg backdrop-blur dark:border-cyan-800 dark:bg-slate-900/95">
+        <div>
+          <p className="text-sm font-extrabold text-primary dark:text-white">
+            {calculationPending
+              ? "Inputs changed — calculate to update the results"
+              : "Results are up to date"}
+          </p>
+          <p className="text-xs text-slate-500">
+            The comparison chart and Abaqus export use the last calculated inputs.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setCalculatedInput(input);
+            setTab("results");
+          }}
+          className="flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-extrabold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+          disabled={!calculationPending}
+        >
+          <Calculator size={18} />
+          Calculate composite properties
+        </button>
+      </section>
       <nav className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900">
         {[
           ["results", "Effective properties"],
@@ -523,7 +562,7 @@ export function CompositeCalculator() {
               <ComparisonBars
                 comparisons={comparisons}
                 propertyKey={comparisonProperty}
-                selectedMethod={input.method}
+                selectedMethod={calculatedInput.method}
               />
             </div>
           </div>
@@ -537,7 +576,7 @@ export function CompositeCalculator() {
               </thead>
               <tbody>
                 {comparisons.map(({ method, label, model: compared }) => (
-                  <tr key={method} className={`border-t border-slate-100 dark:border-slate-800 ${method === input.method ? "bg-cyan-50/70 dark:bg-cyan-950/30" : ""}`}>
+                  <tr key={method} className={`border-t border-slate-100 dark:border-slate-800 ${method === calculatedInput.method ? "bg-cyan-50/70 dark:bg-cyan-950/30" : ""}`}>
                     <th className="px-4 py-3 text-left text-xs font-extrabold text-primary dark:text-white">{label}</th>
                     {["E1", "E2", "E3", "G12", "G13", "G23", "nu12", "nu23"].map((key) => (
                       <td key={key} className="px-3 py-3 font-mono text-xs">{compared.properties[key].value === null ? "—" : format(compared.properties[key].value)}</td>
@@ -646,7 +685,10 @@ export function CompositeCalculator() {
               </button>
               <button
                 onClick={() =>
-                  download(abaqusText(input, model), `${safeName}.inp`)
+                  download(
+                    abaqusText(calculatedInput, model),
+                    `${safeName}.inp`,
+                  )
                 }
                 className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-bold text-white"
               >
@@ -656,7 +698,7 @@ export function CompositeCalculator() {
             </div>
           </div>
           <pre className="max-h-[560px] overflow-auto rounded-lg bg-slate-950 p-5 text-xs leading-6 text-cyan-100">
-            {abaqusText(input, model)}
+            {abaqusText(calculatedInput, model)}
           </pre>
         </section>
       )}
