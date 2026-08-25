@@ -29,6 +29,7 @@ import { DatasetSidebar } from "./DatasetSidebar";
 import { PointTable } from "./PointTable";
 import { ComparisonChart, toChartLabel } from "./ComparisonChart";
 import { CurveComparisonPanel } from "./CurveComparisonPanel";
+import { CopyButton } from "./CopyButton";
 
 function loadImageDimensions(dataUrl) {
   return new Promise((resolve) => {
@@ -370,12 +371,18 @@ export function GraphDigitizerApp() {
                 {activeDataset ? `Points — ${activeDataset.name}` : "Points"}
               </h3>
               {activeDataset && (
-                <button
-                  onClick={() => requireEmailThen(() => downloadDatasetCsv(activeDataset, project.calibration))}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-accent dark:text-slate-400"
-                >
-                  <Download size={13} /> CSV
-                </button>
+                <div className="flex items-center gap-3">
+                  <CopyButton
+                    headers={[chartLabels.xLabel, chartLabels.yLabel]}
+                    rows={sortedPoints(activeDataset.points).map((p) => [p.graphX, p.graphY])}
+                  />
+                  <button
+                    onClick={() => requireEmailThen(() => downloadDatasetCsv(activeDataset, project.calibration))}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-accent dark:text-slate-400"
+                  >
+                    <Download size={13} /> CSV
+                  </button>
+                </div>
               )}
             </div>
             <PointTable dataset={activeDataset} calibration={project.calibration} onEditPoint={handleEditPoint} onDeletePoint={handleDeletePoint} />
