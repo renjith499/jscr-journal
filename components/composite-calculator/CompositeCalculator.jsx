@@ -14,7 +14,7 @@ import {
   defaults,
 } from "@/lib/composite-calculator/model";
 
-const FIELD_GROUPS = [
+const ISOTROPIC_GROUPS = [
   [
     "Elastic constants (enter any two)",
     [
@@ -37,6 +37,64 @@ const FIELD_GROUPS = [
     [
       ["tensile", "Tensile strength", "MPa"],
       ["compression", "Compressive strength", "MPa"],
+    ],
+  ],
+];
+
+const ORTHOTROPIC_GROUPS = [
+  [
+    "Directional Young's moduli",
+    [
+      ["E1", "E₁", "MPa"],
+      ["E2", "E₂", "MPa"],
+      ["E3", "E₃", "MPa"],
+    ],
+  ],
+  [
+    "Directional shear moduli",
+    [
+      ["G12", "G₁₂", "MPa"],
+      ["G13", "G₁₃", "MPa"],
+      ["G23", "G₂₃", "MPa"],
+    ],
+  ],
+  [
+    "Major Poisson ratios",
+    [
+      ["nu12", "ν₁₂", ""],
+      ["nu13", "ν₁₃", ""],
+      ["nu23", "ν₂₃", ""],
+    ],
+  ],
+  [
+    "Direction-wise tensile strength",
+    [
+      ["tensile1", "Direction 1", "MPa"],
+      ["tensile2", "Direction 2", "MPa"],
+      ["tensile3", "Direction 3", "MPa"],
+    ],
+  ],
+  [
+    "Direction-wise compressive strength",
+    [
+      ["compression1", "Direction 1", "MPa"],
+      ["compression2", "Direction 2", "MPa"],
+      ["compression3", "Direction 3", "MPa"],
+    ],
+  ],
+  [
+    "Direction-wise thermal expansion",
+    [
+      ["alpha1", "α₁", "×10⁻⁶/K"],
+      ["alpha2", "α₂", "×10⁻⁶/K"],
+      ["alpha3", "α₃", "×10⁻⁶/K"],
+    ],
+  ],
+  [
+    "Physical and thermal",
+    [
+      ["density", "Density ρ", "kg/m³"],
+      ["cp", "Specific heat cₚ", "J/(kg·K)"],
     ],
   ],
 ];
@@ -107,17 +165,24 @@ function Field({ label, unit, value, onChange }) {
 }
 
 function ConstituentCard({ title, value, onChange, completed }) {
+  const orthotropic = value.type === "orthotropic";
+  const groups = orthotropic ? ORTHOTROPIC_GROUPS : ISOTROPIC_GROUPS;
   return (
     <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-extrabold text-primary dark:text-white">
           {title}
         </h2>
-        <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-[10px] font-bold text-accent dark:bg-cyan-950">
-          ISOTROPIC
-        </span>
+        <select
+          value={value.type || "isotropic"}
+          onChange={(event) => onChange("type", event.target.value)}
+          className="rounded-md border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-extrabold text-primary outline-none dark:border-cyan-900 dark:bg-cyan-950 dark:text-cyan-100"
+        >
+          <option value="isotropic">Isotropic</option>
+          <option value="orthotropic">Orthotropic</option>
+        </select>
       </div>
-      {FIELD_GROUPS.map(([group, fields]) => (
+      {groups.map(([group, fields]) => (
         <div key={group} className="mb-5 last:mb-0">
           <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
             {group}
@@ -136,10 +201,19 @@ function ConstituentCard({ title, value, onChange, completed }) {
         </div>
       ))}
       <div className="mt-4 rounded-md bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-950 dark:text-slate-300">
-        <b>Elastic completion:</b>{" "}
-        {completed.pair
-          ? `using ${completed.pair}; inferred ${completed.inferred.join(", ") || "none"}.`
-          : "enter any two of E, G, ν and K."}
+        {orthotropic ? (
+          <>
+            <b>Orthotropic input:</b> missing directional values affect only
+            dependent composite properties.
+          </>
+        ) : (
+          <>
+            <b>Elastic completion:</b>{" "}
+            {completed.pair
+              ? `using ${completed.pair}; inferred ${completed.inferred.join(", ") || "none"}.`
+              : "enter any two of E, G, ν and K."}
+          </>
+        )}
       </div>
     </section>
   );
@@ -321,9 +395,9 @@ export function CompositeCalculator() {
               Model equations
             </h2>
             <p className="mt-2">
-              Direction 1 is parallel to the continuous fibers; directions 2 and
-              3 form the assumed transversely isotropic plane. Vₘ = 1 − V_f −
-              V_void. Missing inputs are never replaced with arbitrary defaults.
+              Direction 1 is parallel to the continuous fibers. Constituents may
+              independently be isotropic or orthotropic. Vₘ = 1 − V_f − V_void.
+              Missing inputs are never replaced with arbitrary defaults.
             </p>
           </div>
           <EquationSection
@@ -339,10 +413,10 @@ export function CompositeCalculator() {
           <EquationSection
             title="Elastic properties"
             equations={[
-              "E₁ = V_fE_f + VₘEₘ (Voigt / iso-strain)",
-              "1/E₂ = 1/E₃ = V_f/E_f + Vₘ/Eₘ (Reuss / iso-stress)",
-              "1/G₁₂ = 1/G₁₃ = 1/G₂₃ = V_f/G_f + Vₘ/Gₘ",
-              "ν₁₂ = ν₁₃ = ν₂₃ = V_fν_f + Vₘνₘ",
+              "E₁ = V_fE₁f + VₘE₁m (Voigt / iso-strain)",
+              "1/E₂ = V_f/E₂f + Vₘ/E₂m; 1/E₃ = V_f/E₃f + Vₘ/E₃m",
+              "1/Gᵢⱼ = V_f/Gᵢⱼf + Vₘ/Gᵢⱼm for 12, 13 and 23",
+              "νᵢⱼ = V_fνᵢⱼf + Vₘνᵢⱼm for 12, 13 and 23",
               "ν₂₁ = ν₁₂E₂/E₁",
             ]}
           />
@@ -350,16 +424,15 @@ export function CompositeCalculator() {
             title="Strength estimates"
             equations={[
               "X_t = V_fσ_ft + Vₘσ_mt;  X_c = V_fσ_fc + Vₘσ_mc",
-              "1/Y_t = V_f/σ_ft + Vₘ/σ_mt;  1/Y_c = V_f/σ_fc + Vₘ/σ_mc",
-              "Z_t = Y_t; Z_c = Y_c (transverse isotropy)",
+              "1/Y_t = V_f/Y_tf + Vₘ/Y_tm; 1/Y_c = V_f/Y_cf + Vₘ/Y_cm",
+              "1/Z_t = V_f/Z_tf + Vₘ/Z_tm; 1/Z_c = V_f/Z_cf + Vₘ/Z_cm",
             ]}
           />
           <EquationSection
             title="Density and thermal properties"
             equations={[
               "ρ_c = V_fρ_f + Vₘρₘ",
-              "α₁ = (V_fE_fα_f + VₘEₘαₘ)/(V_fE_f + VₘEₘ)",
-              "α₂ = α₃ = V_fα_f + Vₘαₘ (simple ROM estimate)",
+              "αᵢ = (V_fEᵢfαᵢf + VₘEᵢmαᵢm)/(V_fEᵢf + VₘEᵢm), i = 1,2,3",
               "w_i = V_iρ_i/ρ_c; c_p,c = w_fc_p,f + wₘc_p,m",
               "Volumetric heat capacity = ρ_cc_p,c",
             ]}
