@@ -1,0 +1,534 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Download,
+  FlaskConical,
+  Sigma,
+} from "lucide-react";
+import {
+  abaqusText,
+  calculateComposite,
+  defaults,
+} from "@/lib/composite-calculator/model";
+
+const FIELD_GROUPS = [
+  [
+    "Elastic constants (enter any two)",
+    [
+      ["E", "Young's modulus E", "MPa"],
+      ["G", "Shear modulus G", "MPa"],
+      ["nu", "Poisson ratio ν", ""],
+      ["K", "Bulk modulus K", "MPa"],
+    ],
+  ],
+  [
+    "Physical and thermal",
+    [
+      ["density", "Density ρ", "kg/m³"],
+      ["alpha", "Thermal expansion α", "×10⁻⁶/K"],
+      ["cp", "Specific heat cₚ", "J/(kg·K)"],
+    ],
+  ],
+  [
+    "Strength",
+    [
+      ["tensile", "Tensile strength", "MPa"],
+      ["compression", "Compressive strength", "MPa"],
+    ],
+  ],
+];
+
+const OUTPUTS = [
+  [
+    "Engineering constants",
+    [
+      ["E1", "E₁", "MPa"],
+      ["E2", "E₂", "MPa"],
+      ["E3", "E₃", "MPa"],
+      ["G12", "G₁₂", "MPa"],
+      ["G13", "G₁₃", "MPa"],
+      ["G23", "G₂₃", "MPa"],
+      ["nu12", "ν₁₂", ""],
+      ["nu13", "ν₁₃", ""],
+      ["nu23", "ν₂₃", ""],
+      ["nu21", "ν₂₁", ""],
+    ],
+  ],
+  [
+    "Direction-wise strength",
+    [
+      ["Xt", "Xₜ — tension, direction 1", "MPa"],
+      ["Xc", "X꜀ — compression, direction 1", "MPa"],
+      ["Yt", "Yₜ — tension, direction 2", "MPa"],
+      ["Yc", "Y꜀ — compression, direction 2", "MPa"],
+      ["Zt", "Zₜ — tension, direction 3", "MPa"],
+      ["Zc", "Z꜀ — compression, direction 3", "MPa"],
+    ],
+  ],
+  [
+    "Density and thermal properties",
+    [
+      ["density", "Composite density", "kg/m³"],
+      ["alpha1", "α₁", "×10⁻⁶/K"],
+      ["alpha2", "α₂", "×10⁻⁶/K"],
+      ["alpha3", "α₃", "×10⁻⁶/K"],
+      ["cp", "Specific heat cₚ", "J/(kg·K)"],
+      ["volumetricHeat", "Volumetric heat capacity", "J/(m³·K)"],
+    ],
+  ],
+];
+
+function Field({ label, unit, value, onChange }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
+        {label}
+      </span>
+      <div className="flex rounded-md border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-950">
+        <input
+          type="number"
+          step="any"
+          value={value}
+          placeholder="Optional"
+          onChange={(event) => onChange(event.target.value)}
+          className="min-w-0 flex-1 bg-transparent px-3 py-2 font-mono text-sm outline-none"
+        />
+        {unit && (
+          <span className="self-center pr-3 text-[10px] font-bold text-slate-400">
+            {unit}
+          </span>
+        )}
+      </div>
+    </label>
+  );
+}
+
+function ConstituentCard({ title, value, onChange, completed }) {
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-extrabold text-primary dark:text-white">
+          {title}
+        </h2>
+        <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-[10px] font-bold text-accent dark:bg-cyan-950">
+          ISOTROPIC
+        </span>
+      </div>
+      {FIELD_GROUPS.map(([group, fields]) => (
+        <div key={group} className="mb-5 last:mb-0">
+          <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+            {group}
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {fields.map(([key, label, unit]) => (
+              <Field
+                key={key}
+                label={label}
+                unit={unit}
+                value={value[key]}
+                onChange={(next) => onChange(key, next)}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+      <div className="mt-4 rounded-md bg-slate-50 p-3 text-xs leading-5 text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+        <b>Elastic completion:</b>{" "}
+        {completed.pair
+          ? `using ${completed.pair}; inferred ${completed.inferred.join(", ") || "none"}.`
+          : "enter any two of E, G, ν and K."}
+      </div>
+    </section>
+  );
+}
+
+function format(value) {
+  if (value === null) return "Not calculated";
+  const a = Math.abs(value);
+  return a !== 0 && (a >= 1e6 || a < 1e-3)
+    ? value.toExponential(5)
+    : value.toLocaleString(undefined, { maximumSignificantDigits: 7 });
+}
+
+function download(content, name, type = "text/plain") {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+export function CompositeCalculator() {
+  const [input, setInput] = useState(defaults);
+  const [tab, setTab] = useState("results");
+  const model = useMemo(() => calculateComposite(input), [input]);
+  const updateConstituent = (side, key, value) =>
+    setInput((current) => ({
+      ...current,
+      [side]: { ...current[side], [key]: value },
+    }));
+  const csv = () => {
+    const rows = [["Property", "Value", "Unit", "Equation", "Missing inputs"]];
+    OUTPUTS.forEach(([, fields]) =>
+      fields.forEach(([key, label, unit]) => {
+        const item = model.properties[key];
+        rows.push([
+          label,
+          item.value ?? "",
+          unit,
+          item.equation,
+          item.missing.join("; "),
+        ]);
+      }),
+    );
+    return rows
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(","),
+      )
+      .join("\n");
+  };
+  const safeName = (input.name || "Composite").replace(/[^a-zA-Z0-9_-]/g, "_");
+  return (
+    <div className="space-y-6">
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
+        <div className="grid gap-4 md:grid-cols-4">
+          <label className="md:col-span-2">
+            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
+              Composite material name
+            </span>
+            <input
+              value={input.name}
+              onChange={(event) =>
+                setInput((current) => ({
+                  ...current,
+                  name: event.target.value,
+                }))
+              }
+              className="w-full rounded-md border border-slate-200 px-3 py-2 font-mono text-sm dark:border-slate-700 dark:bg-slate-950"
+            />
+          </label>
+          <Field
+            label="Fiber volume fraction"
+            unit="%"
+            value={input.fiberPercent}
+            onChange={(value) =>
+              setInput((current) => ({ ...current, fiberPercent: value }))
+            }
+          />
+          <Field
+            label="Void volume fraction"
+            unit="%"
+            value={input.voidPercent}
+            onChange={(value) =>
+              setInput((current) => ({ ...current, voidPercent: value }))
+            }
+          />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-3 text-xs font-bold">
+          <span className="rounded-full bg-cyan-50 px-3 py-1.5 text-primary dark:bg-cyan-950">
+            Vf {(model.vf * 100).toFixed(2)}%
+          </span>
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+            Vm {(model.vm * 100).toFixed(2)}%
+          </span>
+          <span className="rounded-full bg-amber-50 px-3 py-1.5 text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+            Vvoid {(model.vv * 100).toFixed(2)}%
+          </span>
+        </div>
+      </section>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <ConstituentCard
+          title="Fiber properties"
+          value={input.fiber}
+          completed={model.fiber}
+          onChange={(key, value) => updateConstituent("fiber", key, value)}
+        />
+        <ConstituentCard
+          title="Matrix properties"
+          value={input.matrix}
+          completed={model.matrix}
+          onChange={(key, value) => updateConstituent("matrix", key, value)}
+        />
+      </div>
+      <nav className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900">
+        {[
+          ["results", "Effective properties"],
+          ["equations", "Equations & assumptions"],
+          ["export", "Abaqus export"],
+        ].map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`rounded-md px-4 py-2 text-sm font-bold ${tab === key ? "bg-primary text-white" : "text-slate-500"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      {tab === "results" && (
+        <div className="space-y-5">
+          {OUTPUTS.map(([group, fields]) => (
+            <section
+              key={group}
+              className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+            >
+              <h2 className="mb-4 text-lg font-extrabold text-primary dark:text-white">
+                {group}
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {fields.map(([key, label, unit]) => {
+                  const item = model.properties[key];
+                  return (
+                    <article
+                      key={key}
+                      className={`rounded-lg border p-4 ${item.value === null ? "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950" : "border-cyan-200 bg-cyan-50/50 dark:border-cyan-900 dark:bg-cyan-950/40"}`}
+                    >
+                      <p className="text-xs font-bold text-slate-500">
+                        {label}
+                      </p>
+                      <p className="mt-1 text-xl font-extrabold text-primary dark:text-white">
+                        {format(item.value)}{" "}
+                        {item.value !== null && (
+                          <span className="text-xs font-semibold text-slate-400">
+                            {unit}
+                          </span>
+                        )}
+                      </p>
+                      {item.value === null && (
+                        <p className="mt-2 text-[11px] leading-4 text-amber-700 dark:text-amber-300">
+                          Missing: {item.missing.join(", ")}
+                        </p>
+                      )}
+                      <p className="mt-2 text-[10px] leading-4 text-slate-500">
+                        {item.equation}
+                      </p>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+      {tab === "equations" && (
+        <section className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 text-sm leading-7 text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+          <div>
+            <h2 className="text-xl font-extrabold text-primary dark:text-white">
+              Model equations
+            </h2>
+            <p className="mt-2">
+              Direction 1 is parallel to the continuous fibers; directions 2 and
+              3 form the assumed transversely isotropic plane. Vₘ = 1 − V_f −
+              V_void. Missing inputs are never replaced with arbitrary defaults.
+            </p>
+          </div>
+          <EquationSection
+            title="Isotropic constituent completion"
+            equations={[
+              "E = 2G(1 + ν)",
+              "E = 3K(1 − 2ν)",
+              "E = 9KG/(3K + G)",
+              "ν = E/(2G) − 1",
+              "ν = (3K − 2G)/[2(3K + G)]",
+            ]}
+          />
+          <EquationSection
+            title="Elastic properties"
+            equations={[
+              "E₁ = V_fE_f + VₘEₘ (Voigt / iso-strain)",
+              "1/E₂ = 1/E₃ = V_f/E_f + Vₘ/Eₘ (Reuss / iso-stress)",
+              "1/G₁₂ = 1/G₁₃ = 1/G₂₃ = V_f/G_f + Vₘ/Gₘ",
+              "ν₁₂ = ν₁₃ = ν₂₃ = V_fν_f + Vₘνₘ",
+              "ν₂₁ = ν₁₂E₂/E₁",
+            ]}
+          />
+          <EquationSection
+            title="Strength estimates"
+            equations={[
+              "X_t = V_fσ_ft + Vₘσ_mt;  X_c = V_fσ_fc + Vₘσ_mc",
+              "1/Y_t = V_f/σ_ft + Vₘ/σ_mt;  1/Y_c = V_f/σ_fc + Vₘ/σ_mc",
+              "Z_t = Y_t; Z_c = Y_c (transverse isotropy)",
+            ]}
+          />
+          <EquationSection
+            title="Density and thermal properties"
+            equations={[
+              "ρ_c = V_fρ_f + Vₘρₘ",
+              "α₁ = (V_fE_fα_f + VₘEₘαₘ)/(V_fE_f + VₘEₘ)",
+              "α₂ = α₃ = V_fα_f + Vₘαₘ (simple ROM estimate)",
+              "w_i = V_iρ_i/ρ_c; c_p,c = w_fc_p,f + wₘc_p,m",
+              "Volumetric heat capacity = ρ_cc_p,c",
+            ]}
+          />
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+            <b>Engineering limitation:</b> transverse modulus, shear modulus,
+            strength and transverse CTE are sensitive to fiber geometry,
+            interface quality, void morphology and processing. The displayed
+            ROM/Reuss values are preliminary estimates, not certification data
+            or a progressive failure model.
+          </div>
+          <References />
+        </section>
+      )}
+      {tab === "export" && (
+        <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-extrabold text-primary dark:text-white">
+                Abaqus engineering-constants card
+              </h2>
+              <p className="text-xs text-slate-500">
+                N–mm–MPa–tonne–K units. Sections with missing inputs are omitted
+                automatically.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() =>
+                  download(csv(), `${safeName}_properties.csv`, "text/csv")
+                }
+                className="flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-bold"
+              >
+                <Download size={14} />
+                CSV
+              </button>
+              <button
+                onClick={() =>
+                  download(abaqusText(input, model), `${safeName}.inp`)
+                }
+                className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-bold text-white"
+              >
+                <Download size={14} />
+                Abaqus .inp
+              </button>
+            </div>
+          </div>
+          <pre className="max-h-[560px] overflow-auto rounded-lg bg-slate-950 p-5 text-xs leading-6 text-cyan-100">
+            {abaqusText(input, model)}
+          </pre>
+        </section>
+      )}
+      <div
+        className={`flex items-start gap-3 rounded-lg border p-4 text-sm ${model.warnings.length ? "border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-100" : "border-emerald-300 bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100"}`}
+      >
+        {model.warnings.length ? <AlertTriangle /> : <CheckCircle2 />}
+        <div>
+          <b>
+            {model.warnings.length
+              ? "Review input assumptions"
+              : "Inputs are internally consistent"}
+          </b>
+          {model.warnings.map((warning) => (
+            <p key={warning}>{warning}</p>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EquationSection({ title, equations }) {
+  return (
+    <div>
+      <h3 className="flex items-center gap-2 font-extrabold text-primary dark:text-white">
+        <Sigma size={16} />
+        {title}
+      </h3>
+      <div className="mt-2 grid gap-2 md:grid-cols-2">
+        {equations.map((equation) => (
+          <code
+            key={equation}
+            className="rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:bg-slate-950 dark:text-cyan-100"
+          >
+            {equation}
+          </code>
+        ))}
+      </div>
+    </div>
+  );
+}
+function References() {
+  return (
+    <div>
+      <h3 className="flex items-center gap-2 font-extrabold text-primary dark:text-white">
+        <FlaskConical size={16} />
+        References and implementation basis
+      </h3>
+      <ol className="mt-2 list-decimal space-y-2 pl-5">
+        <li>
+          <a
+            className="font-bold text-accent underline"
+            href="https://ntrs.nasa.gov/api/citations/19830011546/downloads/19830011546.pdf"
+            target="_blank"
+            rel="noreferrer"
+          >
+            C. C. Chamis, Simplified Composite Micromechanics, NASA TM-83320
+            (1983)
+          </a>{" "}
+          — micromechanics relations for UD composite mechanical and thermal
+          properties.
+        </li>
+        <li>
+          <a
+            className="font-bold text-accent underline"
+            href="https://doi.org/10.1016/S0266-3538(99)00128-1"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Jacquet, Trivaudey and Varchon, Composites Science and Technology 60
+            (2000), 345–350
+          </a>{" "}
+          — classical ROM behavior and limitations for transverse modulus.
+        </li>
+        <li>
+          <a
+            className="font-bold text-accent underline"
+            href="https://doi.org/10.1016/0020-7225(70)90066-2"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Rosen and Hashin, International Journal of Engineering Science 8
+            (1970), 157–173
+          </a>{" "}
+          — effective thermal expansion and specific heat of composites.
+        </li>
+        <li>
+          <a
+            className="font-bold text-accent underline"
+            href="https://docs.software.vt.edu/abaqusv2025/English/SIMACAEMATRefMap/simamat-c-linearelastic.htm"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Abaqus 2025 documentation: Linear Elastic Behavior
+          </a>{" "}
+          — engineering constants, reciprocal Poisson ratios and stability
+          requirements.
+        </li>
+        <li>
+          <a
+            className="font-bold text-accent underline"
+            href="https://docs.software.vt.edu/abaqusv2025/English/SIMACAEMATRefMap/simamat-c-thermalexpan.htm"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Abaqus documentation: Thermal Expansion
+          </a>{" "}
+          and{" "}
+          <a
+            className="font-bold text-accent underline"
+            href="https://docs.software.vt.edu/abaqusv2025/English/SIMACAEMATRefMap/simamat-c-specificheat.htm"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Specific Heat
+          </a>
+          .
+        </li>
+      </ol>
+    </div>
+  );
+}
