@@ -478,7 +478,7 @@ export function CompositeCalculator() {
             ]}
           />
           <EquationSection
-            title="Elastic properties"
+            title="Rule of Mixtures (Voigt–Reuss)"
             equations={[
               "E₁ = V_fE₁f + VₘE₁m (Voigt / iso-strain)",
               "1/E₂ = V_f/E₂f + Vₘ/E₂m; 1/E₃ = V_f/E₃f + Vₘ/E₃m",
