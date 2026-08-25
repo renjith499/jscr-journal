@@ -10,8 +10,10 @@ import {
 } from "lucide-react";
 import {
   abaqusText,
+  calculateAllMethods,
   calculateComposite,
   defaults,
+  METHODS,
 } from "@/lib/composite-calculator/model";
 
 const ISOTROPIC_GROUPS = [
@@ -240,6 +242,7 @@ export function CompositeCalculator() {
   const [input, setInput] = useState(defaults);
   const [tab, setTab] = useState("results");
   const model = useMemo(() => calculateComposite(input), [input]);
+  const comparisons = useMemo(() => calculateAllMethods(input), [input]);
   const updateConstituent = (side, key, value) =>
     setInput((current) => ({
       ...current,
@@ -314,6 +317,39 @@ export function CompositeCalculator() {
           </span>
         </div>
       </section>
+      <section className="rounded-xl border border-cyan-200 bg-cyan-50/40 p-5 dark:border-cyan-900 dark:bg-cyan-950/30">
+        <div className="grid gap-4 lg:grid-cols-3">
+          <label className="lg:col-span-2">
+            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
+              Homogenization method used for results and Abaqus export
+            </span>
+            <select
+              value={input.method}
+              onChange={(event) =>
+                setInput((current) => ({ ...current, method: event.target.value }))
+              }
+              className="w-full rounded-md border border-cyan-200 bg-white px-3 py-2 text-sm font-bold text-primary dark:border-cyan-900 dark:bg-slate-950 dark:text-white"
+            >
+              {Object.entries(METHODS).map(([key, item]) => (
+                <option key={key} value={key}>{item.name}</option>
+              ))}
+            </select>
+            <p className="mt-2 text-xs text-slate-500">{METHODS[input.method].short}</p>
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="Halpin–Tsai ξ, transverse"
+              value={input.halpinXiTransverse}
+              onChange={(value) => setInput((current) => ({ ...current, halpinXiTransverse: value }))}
+            />
+            <Field
+              label="Halpin–Tsai ξ, shear"
+              value={input.halpinXiShear}
+              onChange={(value) => setInput((current) => ({ ...current, halpinXiShear: value }))}
+            />
+          </div>
+        </div>
+      </section>
       <div className="grid gap-6 xl:grid-cols-2">
         <ConstituentCard
           title="Fiber properties"
@@ -331,6 +367,7 @@ export function CompositeCalculator() {
       <nav className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900">
         {[
           ["results", "Effective properties"],
+          ["compare", "Compare methods"],
           ["equations", "Equations & assumptions"],
           ["export", "Abaqus export"],
         ].map(([key, label]) => (
@@ -388,6 +425,36 @@ export function CompositeCalculator() {
           ))}
         </div>
       )}
+      {tab === "compare" && (
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="p-5">
+            <h2 className="text-lg font-extrabold text-primary dark:text-white">Elastic-property method comparison</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Density, thermal properties and strengths retain their stated mixture rules. “—” means the selected method is not applicable or an input is missing.
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] border-collapse text-sm">
+              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-950">
+                <tr>
+                  <th className="px-4 py-3">Method</th>
+                  {["E1", "E2", "E3", "G12", "G13", "G23", "nu12", "nu23"].map((key) => <th key={key} className="px-3 py-3">{key}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {comparisons.map(({ method, label, model: compared }) => (
+                  <tr key={method} className={`border-t border-slate-100 dark:border-slate-800 ${method === input.method ? "bg-cyan-50/70 dark:bg-cyan-950/30" : ""}`}>
+                    <th className="px-4 py-3 text-left text-xs font-extrabold text-primary dark:text-white">{label}</th>
+                    {["E1", "E2", "E3", "G12", "G13", "G23", "nu12", "nu23"].map((key) => (
+                      <td key={key} className="px-3 py-3 font-mono text-xs">{compared.properties[key].value === null ? "—" : format(compared.properties[key].value)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
       {tab === "equations" && (
         <section className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 text-sm leading-7 text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
           <div>
@@ -418,6 +485,17 @@ export function CompositeCalculator() {
               "1/Gᵢⱼ = V_f/Gᵢⱼf + Vₘ/Gᵢⱼm for 12, 13 and 23",
               "νᵢⱼ = V_fνᵢⱼf + Vₘνᵢⱼm for 12, 13 and 23",
               "ν₂₁ = ν₁₂E₂/E₁",
+            ]}
+          />
+          <EquationSection
+            title="Alternative homogenization methods"
+            equations={[
+              "Hill: P_H = (P_V + P_R)/2",
+              "Halpin–Tsai: P_c/P_m = (1 + ξηV_f)/(1 − ηV_f); η = (P_f/P_m − 1)/(P_f/P_m + ξ)",
+              "Chamis: P_T = P_m/[1 − √V_f(1 − P_m/P_f)]",
+              "Mori–Tanaka bulk: K = K_m + V_f(K_f−K_m)/[1 + V_m(K_f−K_m)/(K_m+4G_m/3)]",
+              "Mori–Tanaka shear uses ζ_m = G_m(9K_m+8G_m)/[6(K_m+2G_m)]",
+              "Mori–Tanaka output: E = 9KG/(3K+G); ν = (3K−2G)/[2(3K+G)]",
             ]}
           />
           <EquationSection
@@ -532,6 +610,41 @@ function References() {
         References and implementation basis
       </h3>
       <ol className="mt-2 list-decimal space-y-2 pl-5">
+        <li>
+          <a
+            className="font-bold text-accent underline"
+            href="https://doi.org/10.1002/pen.760160512"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Halpin and Kardos, Polymer Engineering &amp; Science 16 (1976),
+            344–352
+          </a>{" "}
+          — review and application basis of the Halpin–Tsai equations.
+        </li>
+        <li>
+          <a
+            className="font-bold text-accent underline"
+            href="https://doi.org/10.1088/0370-1298/65/5/307"
+            target="_blank"
+            rel="noreferrer"
+          >
+            R. Hill, Proceedings of the Physical Society A 65 (1952), 349–354
+          </a>{" "}
+          — Voigt–Reuss–Hill averaging.
+        </li>
+        <li>
+          <a
+            className="font-bold text-accent underline"
+            href="https://doi.org/10.1016/0001-6160(73)90064-3"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Mori and Tanaka, Acta Metallurgica 21 (1973), 571–574
+          </a>{" "}
+          — average-field inclusion homogenization. This calculator implements
+          its isotropic spherical-inclusion specialization.
+        </li>
         <li>
           <a
             className="font-bold text-accent underline"
