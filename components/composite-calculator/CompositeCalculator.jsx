@@ -37,8 +37,8 @@ const ISOTROPIC_GROUPS = [
   [
     "Strength",
     [
-      ["tensile", "Tensile strength", "MPa"],
-      ["compression", "Compressive strength", "MPa"],
+      ["tensile", "Tensile yield/strength", "MPa"],
+      ["compression", "Compressive yield/strength", "MPa"],
     ],
   ],
 ];
@@ -69,7 +69,7 @@ const ORTHOTROPIC_GROUPS = [
     ],
   ],
   [
-    "Direction-wise tensile strength",
+    "Direction-wise tensile yield/strength",
     [
       ["tensile1", "Direction 1", "MPa"],
       ["tensile2", "Direction 2", "MPa"],
@@ -77,7 +77,7 @@ const ORTHOTROPIC_GROUPS = [
     ],
   ],
   [
-    "Direction-wise compressive strength",
+    "Direction-wise compressive yield/strength",
     [
       ["compression1", "Direction 1", "MPa"],
       ["compression2", "Direction 2", "MPa"],
@@ -118,7 +118,7 @@ const OUTPUTS = [
     ],
   ],
   [
-    "Direction-wise strength",
+    "Direction-wise yield/strength estimates",
     [
       ["Xt", "Xₜ — tension, direction 1", "MPa"],
       ["Xc", "X꜀ — compression, direction 1", "MPa"],
@@ -139,6 +139,21 @@ const OUTPUTS = [
       ["volumetricHeat", "Volumetric heat capacity", "J/(m³·K)"],
     ],
   ],
+];
+
+const COMPARISON_PROPERTIES = [
+  ["E1", "E1 — axial modulus", "MPa"],
+  ["E2", "E2 — transverse modulus", "MPa"],
+  ["E3", "E3 — transverse modulus", "MPa"],
+  ["G12", "G12 — in-plane shear modulus", "MPa"],
+  ["G13", "G13 — shear modulus", "MPa"],
+  ["G23", "G23 — transverse shear modulus", "MPa"],
+  ["Xt", "Xt — direction-1 tensile yield/strength", "MPa"],
+  ["Xc", "Xc — direction-1 compressive yield/strength", "MPa"],
+  ["Yt", "Yt — direction-2 tensile yield/strength", "MPa"],
+  ["Yc", "Yc — direction-2 compressive yield/strength", "MPa"],
+  ["Zt", "Zt — direction-3 tensile yield/strength", "MPa"],
+  ["Zc", "Zc — direction-3 compressive yield/strength", "MPa"],
 ];
 
 function Field({ label, unit, value, onChange }) {
@@ -229,6 +244,55 @@ function format(value) {
     : value.toLocaleString(undefined, { maximumSignificantDigits: 7 });
 }
 
+function ComparisonBars({ comparisons, propertyKey, selectedMethod }) {
+  const [, propertyLabel, unit] =
+    COMPARISON_PROPERTIES.find(([key]) => key === propertyKey) ||
+    COMPARISON_PROPERTIES[0];
+  const values = comparisons.map(
+    ({ model }) => model.properties[propertyKey].value,
+  );
+  const maximum = Math.max(
+    0,
+    ...values.filter((value) => Number.isFinite(value)),
+  );
+  return (
+    <div
+      className="space-y-3"
+      role="img"
+      aria-label={`${propertyLabel} comparison by homogenization method`}
+    >
+      {comparisons.map(({ method, label, model: compared }) => {
+        const value = compared.properties[propertyKey].value;
+        const width =
+          value !== null && maximum > 0
+            ? Math.max(1, (value / maximum) * 100)
+            : 0;
+        return (
+          <div
+            key={method}
+            className="grid gap-1 sm:grid-cols-[220px_1fr_125px] sm:items-center"
+          >
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+              {label}
+            </span>
+            <div className="h-7 overflow-hidden rounded bg-slate-100 dark:bg-slate-800">
+              {value !== null && (
+                <div
+                  className={`h-full rounded transition-[width] duration-300 ${method === selectedMethod ? "bg-primary" : "bg-cyan-500/60"}`}
+                  style={{ width: `${width}%` }}
+                />
+              )}
+            </div>
+            <span className="font-mono text-xs text-slate-700 dark:text-slate-200">
+              {value === null ? "Not available" : `${format(value)} ${unit}`}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function download(content, name, type = "text/plain") {
   const url = URL.createObjectURL(new Blob([content], { type }));
   const link = document.createElement("a");
@@ -241,6 +305,7 @@ function download(content, name, type = "text/plain") {
 export function CompositeCalculator() {
   const [input, setInput] = useState(defaults);
   const [tab, setTab] = useState("results");
+  const [comparisonProperty, setComparisonProperty] = useState("E2");
   const model = useMemo(() => calculateComposite(input), [input]);
   const comparisons = useMemo(() => calculateAllMethods(input), [input]);
   const updateConstituent = (side, key, value) =>
@@ -428,10 +493,39 @@ export function CompositeCalculator() {
       {tab === "compare" && (
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <div className="p-5">
-            <h2 className="text-lg font-extrabold text-primary dark:text-white">Elastic-property method comparison</h2>
+            <h2 className="text-lg font-extrabold text-primary dark:text-white">
+              Elastic and yield/strength method comparison
+            </h2>
             <p className="mt-1 text-xs text-slate-500">
-              Density, thermal properties and strengths retain their stated mixture rules. “—” means the selected method is not applicable or an input is missing.
+              Yield/strength values are micromechanical screening estimates, not
+              complete plastic stress–strain curves or failure criteria. “—”
+              means the method is not applicable or an input is missing.
             </p>
+            <label className="mt-5 block max-w-md">
+              <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
+                Bar-chart property
+              </span>
+              <select
+                value={comparisonProperty}
+                onChange={(event) =>
+                  setComparisonProperty(event.target.value)
+                }
+                className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+              >
+                {COMPARISON_PROPERTIES.map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="mt-5">
+              <ComparisonBars
+                comparisons={comparisons}
+                propertyKey={comparisonProperty}
+                selectedMethod={input.method}
+              />
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] border-collapse text-sm">
@@ -499,11 +593,14 @@ export function CompositeCalculator() {
             ]}
           />
           <EquationSection
-            title="Strength estimates"
+            title="Yield/strength screening estimates"
             equations={[
-              "X_t = V_fσ_ft + Vₘσ_mt;  X_c = V_fσ_fc + Vₘσ_mc",
-              "1/Y_t = V_f/Y_tf + Vₘ/Y_tm; 1/Y_c = V_f/Y_cf + Vₘ/Y_cm",
-              "1/Z_t = V_f/Z_tf + Vₘ/Z_tm; 1/Z_c = V_f/Z_cf + Vₘ/Z_cm",
+              "Voigt–Reuss: direct ROM in direction 1; inverse ROM in directions 2 and 3",
+              "Hill: S_H = (S_V + S_R)/2",
+              "Halpin–Tsai: S_c/S_m = (1 + ξηV_f)/(1 − ηV_f)",
+              "Chamis: S_T = S_m/[1 − √V_f(1 − S_m/S_f)]",
+              "Mori–Tanaka: no strength result from the present linear-elastic spherical-inclusion model",
+              "These values estimate onset strength only; they do not define post-yield plastic hardening or damage evolution.",
             ]}
           />
           <EquationSection
@@ -519,8 +616,8 @@ export function CompositeCalculator() {
             <b>Engineering limitation:</b> transverse modulus, shear modulus,
             strength and transverse CTE are sensitive to fiber geometry,
             interface quality, void morphology and processing. The displayed
-            ROM/Reuss values are preliminary estimates, not certification data
-            or a progressive failure model.
+            values are preliminary estimates, not certification data, plastic
+            stress–strain laws or a progressive failure model.
           </div>
           <References />
         </section>
