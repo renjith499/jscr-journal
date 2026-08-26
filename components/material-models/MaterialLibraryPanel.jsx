@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Boxes, Download, Info, Trash2 } from "lucide-react";
 import { listMaterials, removeMaterial } from "@/lib/material-models/library-store";
 import { combinedLibraryFileName, generateCombinedAbaqus2020Library } from "@/lib/material-models/pickle-utils";
@@ -16,8 +16,21 @@ import {
   buildMaterialData as buildSteelData,
   generateAbaqus2020Library as steelLibrary,
 } from "@/lib/steel-studio/abaqus-library";
+import {
+  abaqusText as compositeInp,
+  calculateComposite,
+} from "@/lib/composite-calculator/model";
+import {
+  abaqusLibraryFileName as compositeLibraryFileName,
+  buildMaterialData as buildCompositeData,
+  generateAbaqus2020Library as compositeLibrary,
+} from "@/lib/composite-calculator/abaqus-library";
+import { MaterialDownloadGateModal } from "./MaterialDownloadGateModal";
+import { MaterialReviewPromptModal } from "./MaterialReviewPromptModal";
 
-const KIND_LABEL = { cdp: "CDP", steel: "Steel" };
+const KIND_LABEL = { cdp: "CDP", steel: "Steel", composite: "Composite" };
+const EMAIL_KEY = "material_models_captured_email";
+const REVIEW_KEY = "material_models_review_shown";
 
 function saveFile(content, fileName, type = "text/plain") {
   const a = document.createElement("a");
@@ -30,17 +43,25 @@ function saveFile(content, fileName, type = "text/plain") {
 
 function materialCard(entry) {
   if (entry.kind === "cdp") return generateCDP(entry.inputs);
+  if (entry.kind === "composite") return calculateComposite(entry.inputs);
   return generateSteel(entry.inputs);
 }
 
 function materialData(entry) {
   const model = materialCard(entry);
-  return entry.kind === "cdp" ? buildCDPData(entry.inputs, model) : buildSteelData(entry.inputs, model);
+  if (entry.kind === "cdp") return buildCDPData(entry.inputs, model);
+  if (entry.kind === "composite") return buildCompositeData(entry.inputs, model);
+  return buildSteelData(entry.inputs, model);
 }
 
 function downloadInp(entry) {
   const model = materialCard(entry);
-  saveFile(model.text, `${entry.inputs.name}.inp`);
+  saveFile(
+    entry.kind === "composite"
+      ? compositeInp(entry.inputs, model)
+      : model.text,
+    `${entry.inputs.name}.inp`,
+  );
 }
 
 function downloadLib(entry) {
@@ -48,6 +69,8 @@ function downloadLib(entry) {
   const projectName = entry.inputs.name;
   if (entry.kind === "cdp") {
     saveFile(cdpLibrary(entry.inputs, model, projectName), cdpLibraryFileName(projectName), "application/octet-stream");
+  } else if (entry.kind === "composite") {
+    saveFile(compositeLibrary(entry.inputs, model, projectName), compositeLibraryFileName(projectName), "application/octet-stream");
   } else {
     saveFile(steelLibrary(entry.inputs, model, projectName), steelLibraryFileName(projectName), "application/octet-stream");
   }
@@ -66,10 +89,40 @@ function downloadAll(materials) {
 export function MaterialLibraryPanel() {
   const [materials, setMaterials] = useState([]);
   const [downloadedAll, setDownloadedAll] = useState(false);
+  const [capturedEmail, setCapturedEmail] = useState(null);
+  const [showEmailGate, setShowEmailGate] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const pendingDownload = useRef(null);
 
   useEffect(() => {
     setMaterials(listMaterials());
+    setCapturedEmail(sessionStorage.getItem(EMAIL_KEY));
   }, []);
+
+  function maybeReview() {
+    if (sessionStorage.getItem(REVIEW_KEY)) return;
+    sessionStorage.setItem(REVIEW_KEY, "1");
+    setTimeout(() => setShowReview(true), 500);
+  }
+
+  function requireEmail(action) {
+    if (capturedEmail) {
+      action();
+      maybeReview();
+      return;
+    }
+    pendingDownload.current = action;
+    setShowEmailGate(true);
+  }
+
+  function emailCaptured(email) {
+    sessionStorage.setItem(EMAIL_KEY, email);
+    setCapturedEmail(email);
+    setShowEmailGate(false);
+    pendingDownload.current?.();
+    pendingDownload.current = null;
+    maybeReview();
+  }
 
   function handleRemove(id) {
     removeMaterial(id);
@@ -77,9 +130,11 @@ export function MaterialLibraryPanel() {
   }
 
   function handleDownloadAll() {
-    downloadAll(materials);
-    setDownloadedAll(true);
-    setTimeout(() => setDownloadedAll(false), 2000);
+    requireEmail(() => {
+      downloadAll(materials);
+      setDownloadedAll(true);
+      setTimeout(() => setDownloadedAll(false), 2000);
+    });
   }
 
   return (
@@ -99,7 +154,7 @@ export function MaterialLibraryPanel() {
         </button>
       </div>
       <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-        Materials you save from the CDP or Steel Calculator with "Add to Library" show up here — saved locally in
+        Materials you save from the CDP, Steel or Composite Calculator with "Add to Library" show up here — saved locally in
         your browser, nothing is uploaded.
       </p>
       {materials.length > 0 && (
@@ -136,14 +191,14 @@ export function MaterialLibraryPanel() {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => downloadInp(entry)}
+                  onClick={() => requireEmail(() => downloadInp(entry))}
                   className="rounded-md border px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300"
                 >
                   .inp
                 </button>
                 <button
                   type="button"
-                  onClick={() => downloadLib(entry)}
+                  onClick={() => requireEmail(() => downloadLib(entry))}
                   className="rounded-md border px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:border-accent hover:text-accent dark:border-slate-700 dark:text-slate-300"
                 >
                   .lib
@@ -160,6 +215,23 @@ export function MaterialLibraryPanel() {
             </div>
           ))}
         </div>
+      )}
+      {showEmailGate && (
+        <MaterialDownloadGateModal
+          source="Material Library download"
+          onSuccess={emailCaptured}
+          onClose={() => {
+            setShowEmailGate(false);
+            pendingDownload.current = null;
+          }}
+        />
+      )}
+      {showReview && (
+        <MaterialReviewPromptModal
+          email={capturedEmail}
+          source="Material Library"
+          onClose={() => setShowReview(false)}
+        />
       )}
     </div>
   );

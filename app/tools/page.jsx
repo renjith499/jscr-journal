@@ -1,12 +1,10 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  Boxes,
-  Calculator,
-  LineChart,
+  Atom,
+  ScanSearch,
   ShieldCheck,
 } from "lucide-react";
-import { MaterialLibraryPanel } from "@/components/material-models/MaterialLibraryPanel";
 
 export const metadata = {
   title: "Research Tools | JSCR",
@@ -23,31 +21,19 @@ const categories = [
         title: "Graph Digitizer",
         href: "/tools/graph-digitizer",
         text: "Recover numerical datasets from published graph images with calibrated axes, multiple curves and CSV or Excel export.",
-        Icon: LineChart,
+        Icon: ScanSearch,
       },
     ],
   },
   {
-    title: "Material Models",
+    title: "Engineering Models",
     text: "Generate auditable engineering properties and ready-to-use Abaqus material cards from transparent equations.",
     tools: [
       {
-        title: "CDP Calculator",
-        href: "/tools/cdp-calculator",
-        text: "Generate, inspect and validate Abaqus Concrete Damaged Plasticity material cards from transparent constitutive equations.",
-        Icon: Calculator,
-      },
-      {
-        title: "Steel Calculator",
-        href: "/tools/steel-calculator",
-        text: "Convert yield strength, ultimate strength and elongation into a validated isotropic elastic-plastic Abaqus material card.",
-        Icon: Calculator,
-      },
-      {
-        title: "Composite Property Calculator",
-        href: "/tools/composite-property-calculator",
-        text: "Estimate direction-wise mechanical, strength and thermal properties of unidirectional composites using transparent mixture rules.",
-        Icon: Boxes,
+        title: "Material Models",
+        href: "/tools/material-models",
+        text: "Open one material-model workspace for CDP, steel and composite calculators, saved materials, and combined Abaqus downloads.",
+        Icon: Atom,
       },
     ],
   },
@@ -106,7 +92,6 @@ export default function ToolsPage() {
                 </Link>
               ))}
             </div>
-            {category.title === "Material Models" && <MaterialLibraryPanel />}
           </div>
         ))}
         <div className="mt-12 flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">

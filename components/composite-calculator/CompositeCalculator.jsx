@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
+  BookmarkPlus,
   Calculator,
   CheckCircle2,
   Download,
@@ -16,6 +17,12 @@ import {
   defaults,
   METHODS,
 } from "@/lib/composite-calculator/model";
+import { addMaterial } from "@/lib/material-models/library-store";
+import { MaterialDownloadGateModal } from "@/components/material-models/MaterialDownloadGateModal";
+import { MaterialReviewPromptModal } from "@/components/material-models/MaterialReviewPromptModal";
+
+const EMAIL_SESSION_KEY = "material_models_captured_email";
+const REVIEW_SESSION_KEY = "material_models_review_shown";
 
 const ISOTROPIC_GROUPS = [
   [
@@ -308,6 +315,15 @@ export function CompositeCalculator() {
   const [calculatedInput, setCalculatedInput] = useState(defaults);
   const [tab, setTab] = useState("results");
   const [comparisonProperty, setComparisonProperty] = useState("E2");
+  const [capturedEmail, setCapturedEmail] = useState(() =>
+    typeof window === "undefined"
+      ? null
+      : sessionStorage.getItem(EMAIL_SESSION_KEY),
+  );
+  const [showEmailGate, setShowEmailGate] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [savedToLibrary, setSavedToLibrary] = useState(false);
+  const pendingDownload = useRef(null);
   const model = useMemo(
     () => calculateComposite(calculatedInput),
     [calculatedInput],
@@ -349,6 +365,37 @@ export function CompositeCalculator() {
     /[^a-zA-Z0-9_-]/g,
     "_",
   );
+  const maybeReview = () => {
+    if (sessionStorage.getItem(REVIEW_SESSION_KEY)) return;
+    sessionStorage.setItem(REVIEW_SESSION_KEY, "1");
+    setTimeout(() => setShowReview(true), 500);
+  };
+  const requireEmail = (action) => {
+    if (capturedEmail) {
+      action();
+      maybeReview();
+      return;
+    }
+    pendingDownload.current = action;
+    setShowEmailGate(true);
+  };
+  const emailCaptured = (email) => {
+    sessionStorage.setItem(EMAIL_SESSION_KEY, email);
+    setCapturedEmail(email);
+    setShowEmailGate(false);
+    pendingDownload.current?.();
+    pendingDownload.current = null;
+    maybeReview();
+  };
+  const saveToLibrary = () => {
+    addMaterial(
+      "composite",
+      calculatedInput.name || "Composite",
+      calculatedInput,
+    );
+    setSavedToLibrary(true);
+    setTimeout(() => setSavedToLibrary(false), 1500);
+  };
   return (
     <div className="space-y-6">
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
@@ -675,9 +722,15 @@ export function CompositeCalculator() {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() =>
-                  download(csv(), `${safeName}_properties.csv`, "text/csv")
-                }
+                type="button"
+                onClick={saveToLibrary}
+                className="flex items-center gap-1.5 rounded-md border border-cyan-200 px-3 py-2 text-xs font-bold text-primary dark:border-cyan-800 dark:text-cyan-100"
+              >
+                <BookmarkPlus size={14} />
+                {savedToLibrary ? "Added" : "Add to Library"}
+              </button>
+              <button
+                onClick={() => requireEmail(() => download(csv(), `${safeName}_properties.csv`, "text/csv"))}
                 className="flex items-center gap-1.5 rounded-md border px-3 py-2 text-xs font-bold"
               >
                 <Download size={14} />
@@ -685,10 +738,10 @@ export function CompositeCalculator() {
               </button>
               <button
                 onClick={() =>
-                  download(
+                  requireEmail(() => download(
                     abaqusText(calculatedInput, model),
                     `${safeName}.inp`,
-                  )
+                  ))
                 }
                 className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-bold text-white"
               >
@@ -717,6 +770,23 @@ export function CompositeCalculator() {
           ))}
         </div>
       </div>
+      {showEmailGate && (
+        <MaterialDownloadGateModal
+          source="Composite Property Calculator"
+          onSuccess={emailCaptured}
+          onClose={() => {
+            setShowEmailGate(false);
+            pendingDownload.current = null;
+          }}
+        />
+      )}
+      {showReview && (
+        <MaterialReviewPromptModal
+          email={capturedEmail}
+          source="Composite Property Calculator"
+          onClose={() => setShowReview(false)}
+        />
+      )}
     </div>
   );
 }
