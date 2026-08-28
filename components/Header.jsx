@@ -10,6 +10,7 @@ export function Header({ darkMode, setDarkMode, open, setOpen }) {
     ["Journals", "/#journals"],
     ["Categories", "/#categories"],
     ["Research Tools", "/tools"],
+    ["Learning & Outreach", "/learn"],
     ["Submit Paper", "/submit-paper"],
     ["About", "/#about"],
   ];
