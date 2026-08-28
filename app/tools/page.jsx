@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   Atom,
+  Gamepad2,
   ScanSearch,
   ShieldCheck,
 } from "lucide-react";
@@ -34,6 +35,18 @@ const categories = [
         href: "/tools/material-models",
         text: "Open one material-model workspace for CDP, steel and composite calculators, saved materials, and combined Abaqus downloads.",
         Icon: Atom,
+      },
+    ],
+  },
+  {
+    title: "Learning & Outreach",
+    text: "Interactive lessons that make core concepts approachable for younger students.",
+    tools: [
+      {
+        title: "Mahi's Vault",
+        href: "/tools/mahis-vault",
+        text: "A cinematic platformer for young learners: solve arithmetic gates, time temple traps, and collect Data Cores that teach the history and generations of computers.",
+        Icon: Gamepad2,
       },
     ],
   },
