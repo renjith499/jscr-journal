@@ -1,0 +1,21 @@
+export const stages=[
+{id:1,name:'Spark Sums',operation:'addition',max:10,difficulty:[5,8,10],description:'Easy addition in the short Dawn Garden.',environment:{sky1:'#173d55',sky2:'#d06d65',stone:'#477d68',edge:'#ffe08a',glow:'#83f1c1'}},
+{id:2,name:'Moonlit Minus',operation:'subtraction',max:20,difficulty:[10,15,20],description:'Subtraction across the stepped Moon Archive.',environment:{sky1:'#111b48',sky2:'#54396d',stone:'#59608f',edge:'#b6d7ff',glow:'#8de6ff'}},
+{id:3,name:'Table Trails',operation:'multiplication',max:12,difficulty:[5,8,12],description:'Multiplication through the Ember Workshop.',environment:{sky1:'#351c34',sky2:'#9c493f',stone:'#765044',edge:'#ffc16b',glow:'#ff806b'}},
+{id:4,name:'Remembering Tables',operation:'multiplication',max:20,difficulty:[12,16,20],description:'Advanced tables in the Astral Vault.',environment:{sky1:'#101a3a',sky2:'#422856',stone:'#795575',edge:'#d2a765',glow:'#65e0b5'}},
+{id:5,name:'Crystal Sharing',operation:'division',max:10,difficulty:[5,8,10],description:'Whole-number division over icy terraces.',environment:{sky1:'#103657',sky2:'#58a9be',stone:'#477b92',edge:'#d9fbff',glow:'#9df8ff'}},
+{id:6,name:'Storm Equations',operation:'mixed',max:12,difficulty:[6,9,12],description:'Mixed operations among storm towers.',environment:{sky1:'#202052',sky2:'#7562a9',stone:'#57517e',edge:'#f2dc78',glow:'#bda1ff'}},
+{id:7,name:'Clockwork Quotients',operation:'division',max:15,difficulty:[8,12,15],description:'Harder division through clockwork machinery.',environment:{sky1:'#3c2719',sky2:'#b06b35',stone:'#72563d',edge:'#ffda79',glow:'#69d9ff'}},
+{id:8,name:'Vanishing Variables',operation:'mixed',max:16,difficulty:[10,13,16],description:'Mixed mathematics across the teleporting gallery.',environment:{sky1:'#160f35',sky2:'#5d287b',stone:'#513e70',edge:'#de9bff',glow:'#b869ff'}},
+{id:9,name:'Twin Power Trial',operation:'mixed',max:18,difficulty:[12,15,18],description:'A long dual-power mastery route.',environment:{sky1:'#182b3c',sky2:'#8b405e',stone:'#526071',edge:'#ffe1a1',glow:'#7ffff0'}},
+{id:10,name:'Vault of Mastery',operation:'mixed',max:20,difficulty:[15,18,20],description:'The longest mixed-operation final ascent.',environment:{sky1:'#090d2b',sky2:'#612354',stone:'#6b5277',edge:'#fff0a6',glow:'#fff18b'}}
+];
+export const getStage=id=>stages.find(s=>s.id===Number(id))||stages[0];
+export const achievements=[
+{title:'Dawn Spark',story:'Mahi relit the first garden constellation.'},{title:'Moon Archivist',story:'The forgotten subtraction scrolls glow again.'},{title:'Ember Scholar',story:'The workshop gears turn with remembered tables.'},{title:'Astral Mathematician',story:'Twenty star-paths shine across the vault.'},{title:'Crystal Divider',story:'The frozen river now shares its light equally.'},{title:'Storm Thinker',story:'Mahi calmed the equation storm.'},{title:'Clockwork Solver',story:'Every quotient gear clicks into place.'},{title:'Pathfinder',story:'The vanishing gallery reveals its true path.'},{title:'Twin-Power Champion',story:'Two ancient powers now guard the children of the temple.'},{title:'Keeper of the Learning Throne',story:'Mahi frees the Starlight Keeper and restores the Throne of Learning for every young explorer.'}
+];
+export const getAchievement=id=>achievements[Math.max(0,Math.min(9,Number(id)-1))];
+export const blessings=[
+'May every small sum remind you that great journeys begin one step at a time.','You learned that taking away can reveal what truly remains. Walk onward with confidence.','Your tables are becoming pathways. May practice make every path brighter.','You reached beyond twelve and toward twenty. Your memory is growing strong.','You shared each crystal fairly. May your wisdom always make room for others.','You stayed calm while operations changed like weather. That flexibility is a powerful gift.','Every difficult quotient became another turning gear. Persistence keeps the whole world moving.','Even when the path vanished, your reasoning showed the way. Trust the thinker within you.','You balanced many powers and many operations. Focus has made you a true champion.','Mahi, you have restored the Throne of Learning. May curiosity, courage, and kindness guide every adventure still to come.'
+];
+export const getBlessing=id=>blessings[Math.max(0,Math.min(9,Number(id)-1))];

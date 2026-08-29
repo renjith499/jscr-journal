@@ -1,0 +1,33 @@
+/* The challenge floats beside the live game instead of replacing it. */
+#mathPanel {
+  inset: auto 24px 24px auto;
+  width: min(430px, calc(100vw - 32px));
+  height: auto;
+  padding: 0;
+  background: transparent;
+  display: block;
+  pointer-events: none;
+}
+
+#mathPanel.hidden { display: none; }
+
+#mathPanel .challenge-card {
+  padding: 20px;
+  border-width: 3px;
+  background: linear-gradient(145deg, #111c3aee, #253b67f2);
+  box-shadow: 0 12px 42px #000a, 0 0 24px #6fffe055;
+  pointer-events: auto;
+}
+
+#mathPanel h2 { margin: 8px 0; font-size: 30px; }
+#mathPanel #answers { gap: 8px; margin: 10px 0; }
+#mathPanel #answers button { min-height: 52px; font-size: 24px; }
+#mathPanel #feedback { min-height: 44px; margin: 8px 0; }
+#mathPanel #hint { margin: 6px 0 0; }
+
+@media (max-width: 700px) {
+  #mathPanel { right: 8px; bottom: 8px; width: calc(100vw - 16px); }
+  #mathPanel .challenge-card { padding: 12px; }
+  #mathPanel h2 { font-size: 24px; }
+  #mathPanel #answers button { min-height: 45px; }
+}
