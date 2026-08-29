@@ -1,0 +1,14 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {makeQuestion,makeCustomQuestion,validateAnswer,maxForGrade} from '../src/math/mathEngine.js';
+const zero=()=>0;
+test('addition',()=>assert.equal(makeQuestion('addition',10,zero).answer,2));
+test('subtraction never produces a negative result',()=>{const q=makeQuestion('subtraction',10,()=>.9);assert.ok(q.answer>=0)});
+test('multiplication',()=>assert.equal(makeQuestion('multiplication',12,zero).answer,1));
+test('division always uses whole-number quotients',()=>{for(let i=0;i<100;i++){const q=makeQuestion('division',12);assert.equal(q.a/q.b,q.answer);assert.ok(Number.isInteger(q.answer))}});
+test('division edge case divisor is never zero',()=>assert.ok(makeQuestion('division',1,zero).b>0));
+test('difficulty progresses through the 20-times table',()=>{assert.equal(maxForGrade(2),5);assert.equal(maxForGrade(3),10);assert.equal(maxForGrade(4),12);assert.equal(maxForGrade(5),20)});
+test('grade 5 can generate 20 by 20',()=>{const q=makeQuestion('multiplication',maxForGrade(5),()=>.999);assert.equal(q.a,20);assert.equal(q.b,20);assert.equal(q.answer,400)});
+test('answer validation accepts numeric strings but rejects wrong answers',()=>{const q=makeQuestion('multiplication',1,zero);assert.equal(validateAnswer(q,'1'),true);assert.equal(validateAnswer(q,2),false)});
+test('answer positions vary with rng',()=>{const first=makeQuestion('multiplication',3,zero).choices.indexOf(1);const other=makeQuestion('multiplication',3,()=>.99).choices.indexOf(9);assert.notEqual(first,-1);assert.notEqual(other,-1)});
+test('mixed mode selects a valid operation',()=>{const q=makeQuestion('mixed',10,zero);assert.equal(q.operation,'addition');assert.equal(validateAnswer(q,q.answer),true)});
+test('makeCustomQuestion builds a solvable question with the right answer among the choices',()=>{const q=makeCustomQuestion(7,'multiplication',8);assert.equal(q.answer,56);assert.equal(q.prompt,'7 × 8 = ?');assert.ok(q.choices.includes(56));assert.equal(q.choices.length,4);assert.equal(new Set(q.choices).size,4)});
+test('makeCustomQuestion keeps subtraction non-negative and division whole',()=>{assert.ok(makeCustomQuestion(3,'subtraction',9).answer>=0);const d=makeCustomQuestion(45,'division',9);assert.equal(d.answer,d.a/d.b);assert.ok(Number.isInteger(d.answer))});

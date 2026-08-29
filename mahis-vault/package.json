@@ -1,0 +1,1 @@
+{"name":"mahis-vault","version":"1.0.0","type":"module","scripts":{"start":"node server.js","test":"node --test","build":"node build.js","build:inline":"node build.js --inline"}}
