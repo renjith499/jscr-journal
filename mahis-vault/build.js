@@ -18,6 +18,7 @@ const MODULES=[
  'src/data/stages.js',
  'src/data/level1.js',
  'src/game/lifeSystem.js',
+ 'src/game/trapSystem.js',
  'src/game/player.js',
  'src/game/world.js',
  'src/quiz/quizEngine.js',
