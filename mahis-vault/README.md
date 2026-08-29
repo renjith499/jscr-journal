@@ -35,9 +35,9 @@ back to the checkpoint.
 Press **Ctrl+S** any time to save a full snapshot of the run for the current
 stage (position, hearts, score, sparks, learned facts, Data Cores, guardian
 state, gate state) to `localStorage` (`mahi-save-<stage>`). Reload or restart the
-stage and you resume exactly there — handy for a tricky stretch. The save clears
-itself when the stage is completed or when the adventure resets after five
-losses.
+stage and you resume exactly there — handy for a tricky stretch. Mahi has four
+hearts: the first three mistakes continue from the current point, and the
+fourth clears the snapshot and restarts only the current stage.
 
 ## Run and test
 
