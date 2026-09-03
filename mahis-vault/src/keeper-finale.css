@@ -1,0 +1,21 @@
+/* Stage 10 finale: the freed Starlight Keeper — crowned, robed in a starlight coat,
+   with the vault's chains broken away. Shown only on the final completion screen. */
+.keeper-reveal{margin:4px auto 18px;text-align:center;animation:keeperIn .9s ease-out both}
+.keeper-reveal svg{width:210px;max-width:62%;height:auto;filter:drop-shadow(0 14px 34px #000a)}
+#keeperFigure{animation:keeperFloat 4s ease-in-out infinite alternate}
+.keeper-aura{animation:keeperAura 3s ease-in-out infinite alternate;transform-origin:110px 120px}
+.keeper-crown{transform-origin:110px 40px;animation:keeperCrown 1.7s cubic-bezier(.2,.9,.25,1) .5s both}
+.keeper-crown>*{filter:drop-shadow(0 0 6px #ffdd83)}
+.keeper-shackle{animation:keeperShackle .6s ease-out .35s both}
+.keeper-chain{transform-origin:110px 250px;animation:keeperChain 1.4s ease-in .55s both}
+.keeper-caption{margin:12px auto 0;max-width:430px;color:#fff4c5;font:italic 15px/1.55 Georgia,serif}
+
+@keyframes keeperIn{from{opacity:0;transform:translateY(20px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes keeperFloat{to{transform:translateY(-8px)}}
+@keyframes keeperAura{to{opacity:.8;transform:scale(1.06)}}
+@keyframes keeperCrown{0%{opacity:0;transform:translateY(-48px) rotate(-8deg)}70%{opacity:1;transform:translateY(4px) rotate(2deg)}100%{transform:none}}
+@keyframes keeperShackle{from{opacity:1;transform:none}to{opacity:.9;transform:translateX(-1px)}}
+@keyframes keeperChain{0%{opacity:1;transform:none}55%{opacity:1;transform:translateY(22px) rotate(12deg)}100%{opacity:0;transform:translateY(52px) rotate(24deg)}}
+
+@media(prefers-reduced-motion:reduce){.keeper-reveal,.keeper-reveal *{animation:none!important}}
+@media(max-width:700px){.keeper-reveal svg{width:150px}.keeper-caption{font-size:13px}}

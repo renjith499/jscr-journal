@@ -1,0 +1,26 @@
+/* Sprite-pose animation during cinematic confrontations. */
+.confrontation:not(.hidden) .mahi-fighter {
+  animation: arrival .55s ease-out, mahiReady 1.7s .55s ease-in-out infinite alternate, mahiPose 2.2s .55s steps(1,end) infinite;
+}
+
+.confrontation:not(.hidden) .opponent-fighter:not(.laughing):not(.correct-hit):not(.defeated) {
+  animation: arrival .55s ease-out, opponentPower 1.35s .55s ease-in-out infinite alternate, opponentPose 1.1s .55s steps(1,end) infinite;
+}
+
+.confrontation:not(.hidden) .opponent-fighter.ember:not(.laughing):not(.correct-hit):not(.defeated) { animation-name:arrival,opponentPower,emberPose; }
+.confrontation:not(.hidden) .opponent-fighter.golem:not(.laughing):not(.correct-hit):not(.defeated) { animation-name:arrival,opponentPower,golemPose; }
+.confrontation:not(.hidden) .opponent-fighter.frost:not(.laughing):not(.correct-hit):not(.defeated) { animation-name:arrival,opponentPower,frostPose; }
+.confrontation:not(.hidden) .opponent-fighter.storm:not(.laughing):not(.correct-hit):not(.defeated) { animation-name:arrival,opponentPower,stormPose; }
+.confrontation:not(.hidden) .opponent-fighter.beetle:not(.laughing):not(.correct-hit):not(.defeated) { animation-name:arrival,opponentPower,beetlePose; }
+.confrontation:not(.hidden) .opponent-fighter.voidcat:not(.laughing):not(.correct-hit):not(.defeated) { animation-name:arrival,opponentPower,voidCatPose; }
+
+@keyframes mahiPose { 0%,44%{background-position:0 0}45%,100%{background-position:14.2857% 0} }
+@keyframes opponentPose { 0%,49%{background-position:0 0}50%,100%{background-position:33.333% 0} }
+@keyframes emberPose { 0%,49%{background-position:0 0}50%,100%{background-position:14.2857% 0} }
+@keyframes golemPose { 0%,49%{background-position:57.1428% 0}50%,100%{background-position:71.4285% 0} }
+@keyframes frostPose { 0%,49%{background-position:0 0}50%,100%{background-position:14.2857% 0} }
+@keyframes stormPose { 0%,49%{background-position:28.5714% 0}50%,100%{background-position:42.8571% 0} }
+@keyframes beetlePose { 0%,49%{background-position:57.1428% 0}50%,100%{background-position:71.4285% 0} }
+@keyframes voidCatPose { 0%,49%{background-position:85.7142% 0}50%,100%{background-position:100% 0} }
+
+@media(prefers-reduced-motion:reduce){.mahi-fighter,.opponent-fighter{animation-duration:.01ms!important;animation-iteration-count:1!important}}
