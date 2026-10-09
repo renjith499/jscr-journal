@@ -256,9 +256,16 @@ function ConstituentCard({ title, value, onChange, completed }) {
 
 function MaterialDatabasePanel({ onApply, onLoadPlasticity }) {
   const [databaseTab, setDatabaseTab] = useState("fiber");
+  const [selectedMaterials, setSelectedMaterials] = useState({
+    fiber: MATERIAL_PRESETS.find((preset) => preset.recommendedRole === "fiber")?.id || "",
+    matrix: MATERIAL_PRESETS.find((preset) => preset.recommendedRole === "matrix")?.id || "",
+  });
   const presets = MATERIAL_PRESETS.filter(
     (preset) => preset.recommendedRole === databaseTab,
   );
+  const selectedPreset = presets.find(
+    (preset) => preset.id === selectedMaterials[databaseTab],
+  ) || presets[0];
   return (
     <section className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-slate-800">
@@ -287,23 +294,34 @@ function MaterialDatabasePanel({ onApply, onLoadPlasticity }) {
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 p-5 lg:grid-cols-2">
-          {presets.map((preset) => (
-            <article key={preset.id} className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-accent">{preset.family}</span><h3 className="mt-1 font-extrabold text-primary dark:text-white">{preset.name}</h3></div>
-                <button type="button" onClick={() => onApply(databaseTab, preset)} className="rounded-md bg-primary px-3 py-2 text-xs font-bold text-white">Use as {databaseTab}</button>
-              </div>
-              <p className="mt-3 text-xs leading-5 text-slate-600 dark:text-slate-300">{preset.note}</p>
+        <div className="p-5">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <label className="flex-1">
+              <span className="mb-1.5 block text-xs font-extrabold uppercase tracking-wider text-slate-500">Select material</span>
+              <select
+                value={selectedPreset?.id || ""}
+                onChange={(event) => setSelectedMaterials((current) => ({ ...current, [databaseTab]: event.target.value }))}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-bold text-primary outline-none focus:border-accent dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+              >
+                {presets.map((preset) => <option key={preset.id} value={preset.id}>{preset.name}</option>)}
+              </select>
+            </label>
+            <button type="button" disabled={!selectedPreset} onClick={() => selectedPreset && onApply(databaseTab, selectedPreset)} className="self-end rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Use as {databaseTab}</button>
+          </div>
+          {selectedPreset && (
+            <article className="mt-4 rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-accent">{selectedPreset.family}</span>
+              <h3 className="mt-1 font-extrabold text-primary dark:text-white">{selectedPreset.name}</h3>
+              <p className="mt-3 text-xs leading-5 text-slate-600 dark:text-slate-300">{selectedPreset.note}</p>
               <div className="mt-3 rounded-md bg-slate-50 p-3 text-xs leading-5 dark:bg-slate-950">
-                <b>Plasticity:</b> {preset.plasticityNote}
-                {preset.plasticity && <button type="button" onClick={() => onLoadPlasticity(preset)} className="ml-2 font-extrabold text-accent underline">Load plasticity table</button>}
+                <b>Plasticity:</b> {selectedPreset.plasticityNote}
+                {selectedPreset.plasticity && <button type="button" onClick={() => onLoadPlasticity(selectedPreset)} className="ml-2 font-extrabold text-accent underline">Load plasticity table</button>}
               </div>
               <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500">
-                {referencesFor(preset).map((reference) => <a key={reference.id} href={reference.url} target="_blank" rel="noreferrer" title={`Open ${reference.title}`} className="inline-flex items-center gap-1 font-bold text-accent underline">{reference.title}<ExternalLink size={11} /></a>)}
+                {referencesFor(selectedPreset).map((reference) => <a key={reference.id} href={reference.url} target="_blank" rel="noreferrer" title={`Open ${reference.title}`} className="inline-flex items-center gap-1 font-bold text-accent underline">{reference.title}<ExternalLink size={11} /></a>)}
               </div>
             </article>
-          ))}
+          )}
         </div>
       )}
     </section>
