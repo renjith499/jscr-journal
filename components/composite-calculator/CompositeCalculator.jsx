@@ -6,7 +6,9 @@ import {
   BookmarkPlus,
   Calculator,
   CheckCircle2,
+  Database,
   Download,
+  ExternalLink,
   FlaskConical,
   Plus,
   Sigma,
@@ -20,6 +22,11 @@ import {
   formatMaterialNumber,
   METHODS,
 } from "@/lib/composite-calculator/model";
+import {
+  MATERIAL_PRESETS,
+  MATERIAL_REFERENCES,
+  referencesFor,
+} from "@/lib/composite-calculator/material-database";
 import { addMaterial } from "@/lib/material-models/library-store";
 import { MaterialDownloadGateModal } from "@/components/material-models/MaterialDownloadGateModal";
 import { MaterialReviewPromptModal } from "@/components/material-models/MaterialReviewPromptModal";
@@ -247,6 +254,62 @@ function ConstituentCard({ title, value, onChange, completed }) {
   );
 }
 
+function MaterialDatabasePanel({ onApply, onLoadPlasticity }) {
+  const [databaseTab, setDatabaseTab] = useState("fiber");
+  const presets = MATERIAL_PRESETS.filter(
+    (preset) => preset.recommendedRole === databaseTab,
+  );
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-4 dark:border-slate-800">
+        <div className="flex items-center gap-2">
+          <Database size={20} className="text-accent" />
+          <div>
+            <h2 className="font-extrabold text-primary dark:text-white">Referenced material database</h2>
+            <p className="text-xs text-slate-500">Manufacturer and scientific-source presets; review applicability before use.</p>
+          </div>
+        </div>
+        <div className="flex rounded-lg bg-slate-100 p-1 dark:bg-slate-950">
+          {[["fiber", "Fibers"], ["matrix", "Matrices & polymers"], ["references", "References"]].map(([key, label]) => (
+            <button key={key} type="button" onClick={() => setDatabaseTab(key)} className={`rounded-md px-3 py-1.5 text-xs font-bold ${databaseTab === key ? "bg-primary text-white" : "text-slate-500"}`}>{label}</button>
+          ))}
+        </div>
+      </div>
+      {databaseTab === "references" ? (
+        <div className="grid gap-3 p-5 md:grid-cols-2">
+          {MATERIAL_REFERENCES.map((reference) => (
+            <a key={reference.id} href={reference.url} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-200 p-4 transition hover:border-accent dark:border-slate-700">
+              <span className="flex items-start justify-between gap-3"><b className="text-sm text-primary dark:text-white">{reference.title}</b><ExternalLink size={15} className="shrink-0 text-accent" /></span>
+              <span className="mt-1 block text-xs font-semibold text-slate-500">{reference.publisher}</span>
+              <span className="mt-2 block text-xs leading-5 text-slate-500">{reference.note}</span>
+              <span className="mt-3 inline-flex items-center gap-1 text-xs font-extrabold text-accent">Open source <ExternalLink size={12} /></span>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-4 p-5 lg:grid-cols-2">
+          {presets.map((preset) => (
+            <article key={preset.id} className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div><span className="text-[10px] font-extrabold uppercase tracking-wider text-accent">{preset.family}</span><h3 className="mt-1 font-extrabold text-primary dark:text-white">{preset.name}</h3></div>
+                <button type="button" onClick={() => onApply(databaseTab, preset)} className="rounded-md bg-primary px-3 py-2 text-xs font-bold text-white">Use as {databaseTab}</button>
+              </div>
+              <p className="mt-3 text-xs leading-5 text-slate-600 dark:text-slate-300">{preset.note}</p>
+              <div className="mt-3 rounded-md bg-slate-50 p-3 text-xs leading-5 dark:bg-slate-950">
+                <b>Plasticity:</b> {preset.plasticityNote}
+                {preset.plasticity && <button type="button" onClick={() => onLoadPlasticity(preset)} className="ml-2 font-extrabold text-accent underline">Load plasticity table</button>}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                {referencesFor(preset).map((reference) => <a key={reference.id} href={reference.url} target="_blank" rel="noreferrer" title={`Open ${reference.title}`} className="inline-flex items-center gap-1 font-bold text-accent underline">{reference.title}<ExternalLink size={11} /></a>)}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function PlasticityEditor({ value = {}, onChange }) {
   const rows = value.rows?.length ? value.rows : [{ stress: "", strain: "" }];
   const hill = value.hill || {};
@@ -401,6 +464,19 @@ export function CompositeCalculator() {
       ...current,
       [side]: { ...current[side], [key]: value },
     }));
+  const applyMaterialPreset = (side, preset) =>
+    setInput((current) => ({
+      ...current,
+      [side]: { ...current[side], ...preset.properties },
+    }));
+  const loadPresetPlasticity = (preset) => {
+    if (!preset.plasticity) return;
+    setInput((current) => ({
+      ...current,
+      plasticity: structuredClone(preset.plasticity),
+    }));
+    setTab("plasticity");
+  };
   const csv = () => {
     const rows = [["Property", "Value", "Unit", "Equation", "Missing inputs"]];
     OUTPUTS.forEach(([, fields]) =>
@@ -561,6 +637,10 @@ export function CompositeCalculator() {
           </div>
         </div>
       </section>
+      <MaterialDatabasePanel
+        onApply={applyMaterialPreset}
+        onLoadPlasticity={loadPresetPlasticity}
+      />
       <div className="grid gap-6 xl:grid-cols-2">
         <ConstituentCard
           title="Fiber properties"
