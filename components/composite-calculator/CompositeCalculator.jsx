@@ -8,13 +8,16 @@ import {
   CheckCircle2,
   Download,
   FlaskConical,
+  Plus,
   Sigma,
+  Trash2,
 } from "lucide-react";
 import {
   abaqusText,
   calculateAllMethods,
   calculateComposite,
   defaults,
+  formatMaterialNumber,
   METHODS,
 } from "@/lib/composite-calculator/model";
 import { addMaterial } from "@/lib/material-models/library-store";
@@ -244,15 +247,70 @@ function ConstituentCard({ title, value, onChange, completed }) {
   );
 }
 
-function format(value) {
-  if (value === null) return "Not calculated";
-  const a = Math.abs(value);
-  return a !== 0 && (a >= 1e6 || a < 1e-3)
-    ? value.toExponential(5)
-    : value.toLocaleString(undefined, { maximumSignificantDigits: 7 });
+function PlasticityEditor({ value = {}, onChange }) {
+  const rows = value.rows?.length ? value.rows : [{ stress: "", strain: "" }];
+  const hill = value.hill || {};
+  const updateRow = (index, key, next) => {
+    const updated = rows.map((row, rowIndex) =>
+      rowIndex === index ? { ...row, [key]: next } : row,
+    );
+    onChange({ ...value, rows: updated });
+  };
+  return (
+    <section className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+      <div>
+        <h2 className="text-xl font-extrabold text-primary dark:text-white">
+          Optional Abaqus plasticity
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+          Enter yield stress versus equivalent plastic strain. Leave every row
+          blank to exclude plasticity from the material model. The first plastic
+          strain must be zero and subsequent strains must increase.
+        </p>
+      </div>
+      <div className="space-y-3">
+        {rows.map((row, index) => (
+          <div key={index} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <Field label={`Yield stress ${index + 1}`} unit="MPa" value={row.stress} onChange={(next) => updateRow(index, "stress", next)} />
+            <Field label={`Equivalent plastic strain ${index + 1}`} value={row.strain} onChange={(next) => updateRow(index, "strain", next)} />
+            <button type="button" onClick={() => onChange({ ...value, rows: rows.filter((_, rowIndex) => rowIndex !== index) })} disabled={rows.length === 1} aria-label={`Remove plasticity row ${index + 1}`} className="rounded-md border border-slate-200 p-2.5 text-red-500 disabled:opacity-30 dark:border-slate-700"><Trash2 size={16} /></button>
+          </div>
+        ))}
+        <button type="button" onClick={() => onChange({ ...value, rows: [...rows, { stress: "", strain: "" }] })} className="inline-flex items-center gap-2 rounded-md border border-cyan-200 px-3 py-2 text-xs font-bold text-primary dark:border-cyan-800 dark:text-cyan-100"><Plus size={15} /> Add plasticity row</button>
+      </div>
+      <div>
+        <h3 className="text-sm font-extrabold text-primary dark:text-white">
+          Hill anisotropic yield ratios (optional)
+        </h3>
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          Enter all six positive ratios to export Hill potential, or leave all
+          six blank for ordinary isotropic metal plasticity.
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {["R11", "R22", "R33", "R12", "R13", "R23"].map((key) => (
+            <Field key={key} label={key} value={hill[key] ?? ""} onChange={(next) => onChange({ ...value, hill: { ...hill, [key]: next } })} />
+          ))}
+        </div>
+      </div>
+      <div className="rounded-md border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+        Plasticity is never inferred from composite strength estimates. Only
+        the data entered here are included in Abaqus exports.
+      </div>
+    </section>
+  );
 }
 
-function ComparisonBars({ comparisons, propertyKey, selectedMethod }) {
+function format(value, decimalPlaces = 2) {
+  if (value === null) return "Not calculated";
+  return formatMaterialNumber(value, decimalPlaces);
+}
+
+function ComparisonBars({
+  comparisons,
+  propertyKey,
+  selectedMethod,
+  decimalPlaces,
+}) {
   const [, propertyLabel, unit] =
     COMPARISON_PROPERTIES.find(([key]) => key === propertyKey) ||
     COMPARISON_PROPERTIES[0];
@@ -292,7 +350,9 @@ function ComparisonBars({ comparisons, propertyKey, selectedMethod }) {
               )}
             </div>
             <span className="font-mono text-xs text-slate-700 dark:text-slate-200">
-              {value === null ? "Not available" : `${format(value)} ${unit}`}
+              {value === null
+                ? "Not available"
+                : `${format(value, decimalPlaces)} ${unit}`}
             </span>
           </div>
         );
@@ -348,13 +408,30 @@ export function CompositeCalculator() {
         const item = model.properties[key];
         rows.push([
           label,
-          item.value ?? "",
+          item.value === null
+            ? ""
+            : formatMaterialNumber(
+                item.value,
+                calculatedInput.decimalPlaces,
+              ),
           unit,
           item.equation,
           item.missing.join("; "),
         ]);
       }),
     );
+    const plasticRows = calculatedInput.plasticity?.rows || [];
+    plasticRows
+      .filter((row) => row.stress !== "" || row.strain !== "")
+      .forEach((row, index) =>
+        rows.push([
+          `Plasticity row ${index + 1}`,
+          formatMaterialNumber(row.stress, calculatedInput.decimalPlaces),
+          "MPa",
+          `Equivalent plastic strain = ${formatMaterialNumber(row.strain, calculatedInput.decimalPlaces)}`,
+          "",
+        ]),
+      );
     return rows
       .map((row) =>
         row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(","),
@@ -399,7 +476,7 @@ export function CompositeCalculator() {
   return (
     <div className="space-y-6">
       <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-card dark:border-slate-800 dark:bg-slate-900">
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <label className="md:col-span-2">
             <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
               Composite material name
@@ -429,6 +506,13 @@ export function CompositeCalculator() {
             value={input.voidPercent}
             onChange={(value) =>
               setInput((current) => ({ ...current, voidPercent: value }))
+            }
+          />
+          <Field
+            label="Decimal places"
+            value={input.decimalPlaces}
+            onChange={(value) =>
+              setInput((current) => ({ ...current, decimalPlaces: value }))
             }
           />
         </div>
@@ -519,6 +603,7 @@ export function CompositeCalculator() {
         {[
           ["results", "Effective properties"],
           ["compare", "Compare methods"],
+          ["plasticity", "Optional plasticity"],
           ["equations", "Equations & assumptions"],
           ["export", "Abaqus export"],
         ].map(([key, label]) => (
@@ -553,7 +638,7 @@ export function CompositeCalculator() {
                         {label}
                       </p>
                       <p className="mt-1 text-xl font-extrabold text-primary dark:text-white">
-                        {format(item.value)}{" "}
+                        {format(item.value, calculatedInput.decimalPlaces)}{" "}
                         {item.value !== null && (
                           <span className="text-xs font-semibold text-slate-400">
                             {unit}
@@ -610,6 +695,7 @@ export function CompositeCalculator() {
                 comparisons={comparisons}
                 propertyKey={comparisonProperty}
                 selectedMethod={calculatedInput.method}
+                decimalPlaces={calculatedInput.decimalPlaces}
               />
             </div>
           </div>
@@ -626,7 +712,7 @@ export function CompositeCalculator() {
                   <tr key={method} className={`border-t border-slate-100 dark:border-slate-800 ${method === calculatedInput.method ? "bg-cyan-50/70 dark:bg-cyan-950/30" : ""}`}>
                     <th className="px-4 py-3 text-left text-xs font-extrabold text-primary dark:text-white">{label}</th>
                     {["E1", "E2", "E3", "G12", "G13", "G23", "nu12", "nu23"].map((key) => (
-                      <td key={key} className="px-3 py-3 font-mono text-xs">{compared.properties[key].value === null ? "—" : format(compared.properties[key].value)}</td>
+                      <td key={key} className="px-3 py-3 font-mono text-xs">{compared.properties[key].value === null ? "—" : format(compared.properties[key].value, calculatedInput.decimalPlaces)}</td>
                     ))}
                   </tr>
                 ))}
@@ -634,6 +720,14 @@ export function CompositeCalculator() {
             </table>
           </div>
         </section>
+      )}
+      {tab === "plasticity" && (
+        <PlasticityEditor
+          value={input.plasticity}
+          onChange={(plasticity) =>
+            setInput((current) => ({ ...current, plasticity }))
+          }
+        />
       )}
       {tab === "equations" && (
         <section className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 text-sm leading-7 text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
@@ -687,6 +781,15 @@ export function CompositeCalculator() {
               "Chamis: S_T = S_m/[1 − √V_f(1 − S_m/S_f)]",
               "Mori–Tanaka: no strength result from the present linear-elastic spherical-inclusion model",
               "These values estimate onset strength only; they do not define post-yield plastic hardening or damage evolution.",
+            ]}
+          />
+          <EquationSection
+            title="Optional user-entered plasticity"
+            equations={[
+              "Abaqus plastic table: yield stress versus equivalent plastic strain",
+              "First equivalent plastic strain = 0; subsequent values must increase",
+              "Hill ratios: Rᵢⱼ = directional yield stress/reference yield stress",
+              "No entered plasticity rows = no *PLASTIC or Hill potential in the exported material",
             ]}
           />
           <EquationSection
