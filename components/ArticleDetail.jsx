@@ -61,7 +61,7 @@ export function ArticleDetail({ article, sourceStatus }) {
           <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-card dark:border-slate-700 dark:bg-slate-900">
             <h3 className="text-lg font-extrabold text-primary dark:text-white">Article Metrics</h3>
             <div className="mt-5 grid gap-3">
-              {[["Views", metricsSeed * 421], ["Downloads", metricsSeed * 87], ["Citations", Math.floor(metricsSeed * 2.4)], ["Repository SHA", article.commitSha?.slice(0, 7) || "sample"]].map(([label, value]) => (
+              {[["Views", metricsSeed * 421], ["Downloads", metricsSeed * 87], ["Citations", Math.floor(metricsSeed * 2.4)], ["Publication year", article.date ? new Date(article.date).getFullYear() : "—"]].map(([label, value]) => (
                 <div key={label} className="flex items-center justify-between rounded-md bg-slate-50 p-3 dark:bg-slate-950">
                   <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{label}</span>
                   <span className="font-extrabold text-primary dark:text-white">{value}</span>

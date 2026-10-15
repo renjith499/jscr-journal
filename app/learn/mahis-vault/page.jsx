@@ -3,7 +3,7 @@ import { Brain, Calculator, ExternalLink, Footprints } from "lucide-react";
 export const metadata = {
   title: "Mahi's Vault | JSCR",
   description:
-    "A cinematic maths-and-computer-history platformer for young learners. Solve arithmetic gates, time temple traps, and collect Data Cores that teach the evolution and generations of computers.",
+    "An educational mathematics and scientific-discovery adventure for young learners, combining arithmetic challenges with the history of calculation and engineering innovation.",
 };
 
 export default function MahisVaultPage() {
@@ -17,12 +17,12 @@ export default function MahisVaultPage() {
               Mahi&apos;s Vault
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-              An original HTML5 platformer built for young learners. Guide Mahi through ten temple
+              An original educational adventure built for young learners. Guide Mahi through ten temple
               routes: run, jump and climb past spike traps, slamming blades and erupting volcanoes;
               answer addition, subtraction, multiplication, division and mixed-operation gates; and
-              touch the glowing Data Cores to learn how computers evolved &mdash; from the abacus and
-              Napier&apos;s Bones to ENIAC, UNIVAC and the generations of modern machines. Progress,
-              a quick-save (Ctrl+S) and the facts you learn are stored only in your browser.
+              touch the glowing Data Cores to explore milestones in calculation, measurement and
+              engineering &mdash; from the abacus and Napier&apos;s Bones to modern scientific instruments.
+              Progress, a quick-save (Ctrl+S) and the facts you learn remain on your device.
             </p>
             <a
               href="/games/mahis-vault/index.html"
@@ -35,9 +35,9 @@ export default function MahisVaultPage() {
           </div>
           <div className="grid gap-4 sm:grid-cols-3 lg:pt-8">
             {[
-              ["Platforming", "Run, jump, climb ladders and time traps across ten temple routes.", Footprints],
+              ["Exploration", "Run, jump, climb ladders and time traps across ten temple routes.", Footprints],
               ["Mental maths", "Warm-up, growing and challenge gates for every operation, capped by grade level.", Calculator],
-              ["Computer history", "Data Cores quiz the “Evolution of Computers” chapter as you explore.", Brain],
+              ["Scientific history", "Data Cores introduce milestones in calculation and engineering as you explore.", Brain],
             ].map(([title, text, Icon]) => (
               <div key={title} className="rounded-lg border border-slate-200 bg-slate-50 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-md bg-cyan-100 text-primary dark:bg-cyan-950 dark:text-cyan-100">
@@ -56,7 +56,7 @@ export default function MahisVaultPage() {
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900">
             <iframe
               src="/games/mahis-vault/index.html"
-              title="Mahi's Vault — an educational platformer"
+              title="Mahi's Vault — an educational mathematics adventure"
               className="block h-[85vh] min-h-[560px] w-full border-0"
               allow="fullscreen; gamepad"
               loading="lazy"

@@ -7,13 +7,13 @@ export function HeroSection() {
         <div>
           <div className="mb-5 inline-flex items-center gap-2 rounded-md border border-cyan-200 bg-white px-3 py-1.5 text-sm font-bold text-primary shadow-sm dark:border-cyan-900 dark:bg-slate-900 dark:text-cyan-100">
             <CheckCircle2 size={16} className="text-accent" />
-            GitHub-powered engineering publishing
+            Advancing engineering and scientific knowledge
           </div>
           <h1 className="max-w-4xl text-4xl font-extrabold leading-tight text-primary dark:text-white sm:text-5xl lg:text-6xl">
-            Engineering & Scientific Research Platform
+            Journal of Scientific Computing & Research
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-            Publish, explore, and discover high-quality scientific and technical articles.
+            Explore peer-reviewed engineering studies, computational research, technical investigations, and practical research tools.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <a href="#articles" className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3.5 text-sm font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:bg-accent">
@@ -29,7 +29,7 @@ export function HeroSection() {
           <div className="absolute inset-5 rounded-md contour-lines" />
           <div className="relative flex h-full min-h-[320px] flex-col justify-between rounded-md border border-white/60 p-5">
             <div className="grid grid-cols-3 gap-3">
-              {["Markdown", "REST API", "Versioned"].map((label, index) => (
+              {["Research", "Open Access", "Reproducible"].map((label, index) => (
                 <div key={label} className="rounded-md bg-white/85 p-3 shadow-sm backdrop-blur dark:bg-slate-950/75">
                   <div className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">{label}</div>
                   <div className="mt-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700">

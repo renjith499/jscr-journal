@@ -1,8 +1,8 @@
 export function Footer() {
   const groups = {
-    "About the platform": ["GitHub CMS", "Editorial board", "Indexing", "Open access"],
+    "About the journal": ["Aims and scope", "Editorial board", "Indexing", "Open access"],
     "Article categories": ["FEA", "CFD", "Robotics", "Renewable energy"],
-    "Submission guidelines": ["Markdown frontmatter", "Peer review", "Ethics", "Templates"],
+    "Submission guidelines": ["Author guidelines", "Peer review", "Publication ethics", "Manuscript templates"],
     Contact: ["research@desyngo.com", "JSCR editorial office", "Partnerships", "Submission support"],
   };
 
@@ -19,7 +19,7 @@ export function Footer() {
         ))}
       </div>
       <div className="border-t border-white/10 px-5 py-5 text-center text-sm text-blue-100">
-        Copyright 2026 JSCR Research Platform. All rights reserved.
+        Copyright 2026 Journal of Scientific Computing &amp; Research. All rights reserved.
       </div>
     </footer>
   );

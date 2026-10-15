@@ -228,7 +228,7 @@ export function SubmitPaperForm() {
 
         <label>
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Paper / manuscript link optional</span>
-          <input name="manuscript_link" className={fieldClass(errors.manuscriptUrl)} value={form.manuscriptUrl} onChange={(event) => updateField("manuscriptUrl", event.target.value)} placeholder="https://github.com/.../articles/paper.md" />
+          <input name="manuscript_link" className={fieldClass(errors.manuscriptUrl)} value={form.manuscriptUrl} onChange={(event) => updateField("manuscriptUrl", event.target.value)} placeholder="https://doi.org/... or a secure manuscript link" />
           {errors.manuscriptUrl && <span className="mt-2 block text-xs font-semibold text-red-600">{errors.manuscriptUrl}</span>}
         </label>
 
@@ -244,14 +244,14 @@ export function SubmitPaperForm() {
             </div>
             <div>
               <div className="font-bold text-primary dark:text-white">No file upload required</div>
-              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Authors can submit the form with contact and article details only. A manuscript, preprint, or repository link can be added later if available.</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">Authors may begin with contact and article details. A manuscript, preprint, dataset, or supporting-material link can be added when available.</p>
             </div>
           </div>
         </div>
 
         <label className="lg:col-span-2">
           <span className="mb-2 block text-sm font-bold text-slate-700 dark:text-slate-200">Editorial notes</span>
-          <textarea name="editorial_notes" rows={4} className={fieldClass()} value={form.comments} onChange={(event) => updateField("comments", event.target.value)} placeholder="Conflicts of interest, suggested reviewers, repository access notes, or special handling instructions." />
+          <textarea name="editorial_notes" rows={4} className={fieldClass()} value={form.comments} onChange={(event) => updateField("comments", event.target.value)} placeholder="Conflicts of interest, suggested reviewers, data-availability notes, or special handling instructions." />
         </label>
 
         <div className="lg:col-span-2 grid gap-3 rounded-md border border-slate-200 p-4 dark:border-slate-700">

@@ -1,4 +1,4 @@
-import { ClipboardCheck, GitBranch, MailCheck } from "lucide-react";
+import { ClipboardCheck, FileCheck2, MailCheck } from "lucide-react";
 import { SubmitPaperForm } from "@/components/SubmitPaperForm";
 
 export const metadata = {
@@ -23,7 +23,7 @@ export default function SubmitPaperPage() {
           <div className="grid gap-4 sm:grid-cols-3 lg:pt-8">
             {[
               ["Metadata", "Structured article details for indexing.", ClipboardCheck],
-              ["GitHub-ready", "Markdown and repository links supported.", GitBranch],
+              ["Editorial review", "Manuscripts and supporting research materials are welcomed.", FileCheck2],
               ["Editorial email", "Creates a complete submission summary.", MailCheck],
             ].map(([title, text, Icon]) => (
               <div key={title} className="rounded-lg border border-slate-200 bg-slate-50 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">

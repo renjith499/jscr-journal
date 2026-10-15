@@ -3,7 +3,7 @@ import { SiteShell } from "@/components/SiteShell";
 
 export const metadata = {
   title: "JSCR | Journal of Scientific Computing & Research",
-  description: "A professional GitHub-powered scientific publishing platform for engineering and computational research.",
+  description: "A multidisciplinary scientific journal for engineering research, computational methods, technical studies, and reproducible analysis.",
 };
 
 export default function RootLayout({ children }) {

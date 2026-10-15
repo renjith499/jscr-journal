@@ -107,12 +107,12 @@ export function MarkdownBuilder() {
     <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
       <section className="rounded-lg border border-slate-200 bg-white shadow-soft dark:border-slate-800 dark:bg-slate-900">
         <div className="border-b border-slate-200 bg-slate-50 px-6 py-5 dark:border-slate-800 dark:bg-slate-950">
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">Article Markdown Builder</p>
-          <h2 className="mt-2 text-2xl font-extrabold text-primary dark:text-white">Create upload-ready JSCR markdown</h2>
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-accent">Structured Article Builder</p>
+          <h2 className="mt-2 text-2xl font-extrabold text-primary dark:text-white">Prepare a consistent JSCR article file</h2>
           <div className="mt-4 grid gap-2 rounded-md border border-cyan-200 bg-white p-4 text-sm font-semibold leading-6 text-primary dark:border-cyan-900 dark:bg-slate-900 dark:text-cyan-100">
-            <p>Upload generated markdown files to <span className="font-extrabold">articles/</span>.</p>
-            <p>Upload article images to <span className="font-extrabold">public/images/</span> and use paths like <span className="font-extrabold">/images/figure.png</span>.</p>
-            <p>Upload PDFs to <span className="font-extrabold">public/pdfs/</span> and use paths like <span className="font-extrabold">/pdfs/article.pdf</span>.</p>
+            <p>Complete the bibliographic details and organize the manuscript into clearly named scientific sections.</p>
+            <p>Use stable links for figures, graphs and supplementary research data.</p>
+            <p>Include a manuscript or article PDF link when it is available.</p>
           </div>
         </div>
 
@@ -215,7 +215,7 @@ export function MarkdownBuilder() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent">Output file</p>
-                <h3 className="mt-1 font-extrabold text-primary dark:text-white">articles/{slug}.md</h3>
+                <h3 className="mt-1 font-extrabold text-primary dark:text-white">{slug}-article-file</h3>
               </div>
               <FileCode2 className="text-accent" />
             </div>

@@ -44,7 +44,7 @@ export default function ToolsPage() {
     <main className="min-h-[75vh] bg-paper px-5 py-16 dark:bg-slate-950 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <p className="text-sm font-bold uppercase tracking-[.2em] text-accent">
-          JSCR Research Platform
+          Journal Research Resources
         </p>
         <h1 className="mt-4 text-4xl font-extrabold text-primary dark:text-white sm:text-5xl">
           Tools for Research

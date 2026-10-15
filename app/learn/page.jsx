@@ -4,14 +4,14 @@ import { ArrowRight, Gamepad2, GraduationCap, Sparkles } from "lucide-react";
 export const metadata = {
   title: "Learning & Outreach | JSCR",
   description:
-    "Interactive lessons and games that make computing and engineering concepts approachable for students and the wider public.",
+    "Interactive lessons and educational activities that make mathematics, engineering, and scientific concepts approachable.",
 };
 
 const items = [
   {
     title: "Mahi's Vault",
     href: "/learn/mahis-vault",
-    text: "A ten-stage cinematic platformer for young learners: solve arithmetic gates, time temple traps, and collect Data Cores that teach the history and generations of computers. Runs entirely in the browser.",
+    text: "A ten-stage educational adventure for young learners featuring arithmetic challenges, logical reasoning, and the development of calculation methods.",
     Icon: Gamepad2,
     tag: "Game",
   },
@@ -27,7 +27,7 @@ export default function LearnPage() {
           </div>
           <div>
             <p className="text-sm font-bold uppercase tracking-[.2em] text-accent">
-              JSCR Research Platform
+              JSCR Education &amp; Outreach
             </p>
             <h1 className="mt-1 text-4xl font-extrabold text-primary dark:text-white sm:text-5xl">
               Learning &amp; Outreach
@@ -35,9 +35,8 @@ export default function LearnPage() {
           </div>
         </div>
         <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-600 dark:text-slate-300">
-          Hands-on lessons, games and explainers that make computing and
-          engineering ideas approachable for students and the wider public.
-          Everything here runs in your browser.
+          Hands-on lessons, activities and explainers that make mathematics,
+          engineering and scientific ideas approachable for students and the wider public.
         </p>
 
         <div className="mt-10 grid gap-6 md:grid-cols-2">
