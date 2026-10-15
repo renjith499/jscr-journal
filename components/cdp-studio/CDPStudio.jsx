@@ -141,11 +141,6 @@ export function CDPStudio() {
       void submitAuthenticatedDownloadUsage({ email: user.email, tool: "CDP Calculator", download: "CDP export" });
       return;
     }
-    if (capturedEmail) {
-      downloadAction();
-      maybePromptReview();
-      return;
-    }
     pendingDownloadRef.current = downloadAction;
     setShowEmailGate(true);
   }

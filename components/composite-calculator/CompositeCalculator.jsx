@@ -549,11 +549,6 @@ export function CompositeCalculator() {
       void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Composite Property Calculator", download: "Composite export" });
       return;
     }
-    if (capturedEmail) {
-      action();
-      maybeReview();
-      return;
-    }
     pendingDownload.current = action;
     setShowEmailGate(true);
   };

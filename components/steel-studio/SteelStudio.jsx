@@ -126,11 +126,6 @@ export function SteelStudio() {
       void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Steel Material Calculator", download: "Steel export" });
       return;
     }
-    if (capturedEmail) {
-      downloadAction();
-      maybePromptReview();
-      return;
-    }
     pendingDownloadRef.current = downloadAction;
     setShowEmailGate(true);
   }

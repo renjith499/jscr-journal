@@ -113,11 +113,6 @@ export function MaterialLibraryPanel() {
       void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Material Models", download: "Material model export" });
       return;
     }
-    if (capturedEmail) {
-      action();
-      maybeReview();
-      return;
-    }
     pendingDownload.current = action;
     setShowEmailGate(true);
   }
