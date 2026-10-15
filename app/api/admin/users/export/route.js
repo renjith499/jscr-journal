@@ -2,6 +2,21 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { authorizeAdmin } from "@/lib/supabase/admin";
 
+function formatIndianStandardTime(value) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("en-IN", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+    timeZoneName: "short",
+  }).format(new Date(value));
+}
+
 const csvCell = (value) => `"${String(value ?? "").replaceAll('"', '""')}"`;
 
 export async function GET(request) {
@@ -17,7 +32,7 @@ export async function GET(request) {
     users.push(...data.users);
     if (data.users.length < 1000) break;
   }
-  const rows = [["email", "email_verified", "registered_at", "last_sign_in_at"], ...users.map((user) => [user.email, Boolean(user.email_confirmed_at), user.created_at, user.last_sign_in_at || ""])];
+  const rows = [["email", "email_verified", "registered_at_ist", "last_sign_in_at_ist"], ...users.map((user) => [user.email, Boolean(user.email_confirmed_at), formatIndianStandardTime(user.created_at), formatIndianStandardTime(user.last_sign_in_at)])];
   const csv = rows.map((row) => row.map(csvCell).join(",")).join("\r\n");
   return new NextResponse(csv, { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="jscr-users-${new Date().toISOString().slice(0, 10)}.csv"`, "Cache-Control": "no-store" } });
 }
