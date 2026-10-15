@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { submitMaterialUsageEmail } from "@/lib/material-models/feedback";
+import { DownloadAccountLogin } from "@/components/auth/DownloadAccountLogin";
 
-export function MaterialDownloadGateModal({ source, onSuccess, onClose }) {
+export function MaterialDownloadGateModal({ source, onSuccess, onAuthenticated, onClose }) {
   const [email, setEmail] = useState("");
   const [usage, setUsage] = useState("");
   const [status, setStatus] = useState("idle");
@@ -36,6 +37,7 @@ export function MaterialDownloadGateModal({ source, onSuccess, onClose }) {
           </div>
           <button type="button" onClick={onClose} aria-label="Close" className="text-slate-400 hover:text-slate-700"><X size={18} /></button>
         </div>
+        <DownloadAccountLogin onAuthenticated={onAuthenticated} />
         <form onSubmit={submit} className="space-y-3">
           <label className="block">
             <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">Email address</span>

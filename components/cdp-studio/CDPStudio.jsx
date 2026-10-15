@@ -16,6 +16,7 @@ import {
 import { addMaterial } from "@/lib/material-models/library-store";
 import { CDPEmailGateModal } from "./CDPEmailGateModal";
 import { CDPReviewPromptModal } from "./CDPReviewPromptModal";
+import { getVerifiedDownloadUser, submitAuthenticatedDownloadUsage } from "@/lib/auth/download-usage";
 
 const EMAIL_SESSION_KEY = "cdp_captured_email";
 const REVIEW_SHOWN_SESSION_KEY = "cdp_review_shown";
@@ -133,7 +134,13 @@ export function CDPStudio() {
     setTimeout(() => setShowReviewPrompt(true), 500);
   }
 
-  function requireEmailThen(downloadAction) {
+  async function requireEmailThen(downloadAction) {
+    const user = await getVerifiedDownloadUser();
+    if (user) {
+      downloadAction();
+      void submitAuthenticatedDownloadUsage({ email: user.email, tool: "CDP Calculator", download: "CDP export" });
+      return;
+    }
     if (capturedEmail) {
       downloadAction();
       maybePromptReview();
@@ -150,6 +157,12 @@ export function CDPStudio() {
     pendingDownloadRef.current?.();
     pendingDownloadRef.current = null;
     maybePromptReview();
+  }
+  function handleAuthenticatedDownload(user) {
+    setShowEmailGate(false);
+    pendingDownloadRef.current?.();
+    pendingDownloadRef.current = null;
+    void submitAuthenticatedDownloadUsage({ email: user.email, tool: "CDP Calculator", download: "CDP export" });
   }
   return (
     <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
@@ -413,6 +426,7 @@ export function CDPStudio() {
       </section>
       {showEmailGate && (
         <CDPEmailGateModal
+          onAuthenticated={handleAuthenticatedDownload}
           onSuccess={handleEmailCaptured}
           onClose={() => {
             setShowEmailGate(false);

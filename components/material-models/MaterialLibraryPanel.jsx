@@ -27,6 +27,7 @@ import {
 } from "@/lib/composite-calculator/abaqus-library";
 import { MaterialDownloadGateModal } from "./MaterialDownloadGateModal";
 import { MaterialReviewPromptModal } from "./MaterialReviewPromptModal";
+import { getVerifiedDownloadUser, submitAuthenticatedDownloadUsage } from "@/lib/auth/download-usage";
 
 const KIND_LABEL = { cdp: "CDP", steel: "Steel", composite: "Composite" };
 const EMAIL_KEY = "material_models_captured_email";
@@ -105,7 +106,13 @@ export function MaterialLibraryPanel() {
     setTimeout(() => setShowReview(true), 500);
   }
 
-  function requireEmail(action) {
+  async function requireEmail(action) {
+    const user = await getVerifiedDownloadUser();
+    if (user) {
+      action();
+      void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Material Models", download: "Material model export" });
+      return;
+    }
     if (capturedEmail) {
       action();
       maybeReview();
@@ -122,6 +129,12 @@ export function MaterialLibraryPanel() {
     pendingDownload.current?.();
     pendingDownload.current = null;
     maybeReview();
+  }
+  function authenticatedDownload(user) {
+    setShowEmailGate(false);
+    pendingDownload.current?.();
+    pendingDownload.current = null;
+    void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Material Models", download: "Material model export" });
   }
 
   function handleRemove(id) {
@@ -218,6 +231,7 @@ export function MaterialLibraryPanel() {
       )}
       {showEmailGate && (
         <MaterialDownloadGateModal
+          onAuthenticated={authenticatedDownload}
           source="Material Library download"
           onSuccess={emailCaptured}
           onClose={() => {

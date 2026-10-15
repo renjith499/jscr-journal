@@ -7,6 +7,7 @@ import { abaqusLibraryFileName, generateAbaqus2020Library } from "@/lib/steel-st
 import { addMaterial } from "@/lib/material-models/library-store";
 import { SteelEmailGateModal } from "./SteelEmailGateModal";
 import { SteelReviewPromptModal } from "./SteelReviewPromptModal";
+import { getVerifiedDownloadUser, submitAuthenticatedDownloadUsage } from "@/lib/auth/download-usage";
 
 const EMAIL_SESSION_KEY = "steel_captured_email";
 const REVIEW_SHOWN_SESSION_KEY = "steel_review_shown";
@@ -118,7 +119,13 @@ export function SteelStudio() {
     setTimeout(() => setShowReviewPrompt(true), 500);
   }
 
-  function requireEmailThen(downloadAction) {
+  async function requireEmailThen(downloadAction) {
+    const user = await getVerifiedDownloadUser();
+    if (user) {
+      downloadAction();
+      void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Steel Material Calculator", download: "Steel export" });
+      return;
+    }
     if (capturedEmail) {
       downloadAction();
       maybePromptReview();
@@ -135,6 +142,12 @@ export function SteelStudio() {
     pendingDownloadRef.current?.();
     pendingDownloadRef.current = null;
     maybePromptReview();
+  }
+  function handleAuthenticatedDownload(user) {
+    setShowEmailGate(false);
+    pendingDownloadRef.current?.();
+    pendingDownloadRef.current = null;
+    void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Steel Material Calculator", download: "Steel export" });
   }
 
   return (
@@ -326,6 +339,7 @@ export function SteelStudio() {
 
       {showEmailGate && (
         <SteelEmailGateModal
+          onAuthenticated={handleAuthenticatedDownload}
           onSuccess={handleEmailCaptured}
           onClose={() => {
             setShowEmailGate(false);

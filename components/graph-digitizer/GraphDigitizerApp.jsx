@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Download, FileSpreadsheet, FolderOpen, ImagePlus, Save } from "lucide-react";
 import { EmailGateModal } from "./EmailGateModal";
 import { ReviewPromptModal } from "./ReviewPromptModal";
+import { getVerifiedDownloadUser, submitAuthenticatedDownloadUsage } from "@/lib/auth/download-usage";
 import {
   createDataset,
   createProject,
@@ -67,7 +68,13 @@ export function GraphDigitizerApp() {
     setTimeout(() => setShowReviewPrompt(true), 500);
   }
 
-  function requireEmailThen(action) {
+  async function requireEmailThen(action) {
+    const user = await getVerifiedDownloadUser();
+    if (user) {
+      action();
+      void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Graph Digitizer", download: "Digitizer export" });
+      return;
+    }
     if (capturedEmail) {
       action();
       maybePromptReview();
@@ -84,6 +91,12 @@ export function GraphDigitizerApp() {
     pendingActionRef.current?.();
     pendingActionRef.current = null;
     maybePromptReview();
+  }
+  function handleAuthenticatedDownload(user) {
+    setShowEmailGate(false);
+    pendingActionRef.current?.();
+    pendingActionRef.current = null;
+    void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Graph Digitizer", download: "Digitizer export" });
   }
 
   const activeDataset = project.datasets.find((d) => d.datasetId === activeDatasetId) || null;
@@ -450,6 +463,7 @@ export function GraphDigitizerApp() {
 
       {showEmailGate && (
         <EmailGateModal
+          onAuthenticated={handleAuthenticatedDownload}
           onSuccess={handleEmailCaptured}
           onClose={() => {
             setShowEmailGate(false);

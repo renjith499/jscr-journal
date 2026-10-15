@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { submitCDPUsageEmail } from "@/lib/cdp-studio/feedback";
+import { DownloadAccountLogin } from "@/components/auth/DownloadAccountLogin";
 
-export function CDPEmailGateModal({ onSuccess, onClose }) {
+export function CDPEmailGateModal({ onSuccess, onAuthenticated, onClose }) {
   const [email, setEmail] = useState("");
   const [usage, setUsage] = useState("");
   const [status, setStatus] = useState({ state: "idle", message: "" });
@@ -41,6 +42,7 @@ export function CDPEmailGateModal({ onSuccess, onClose }) {
             <X size={18} />
           </button>
         </div>
+        <DownloadAccountLogin onAuthenticated={onAuthenticated} />
         <form onSubmit={handleSubmit} className="space-y-3">
           <label>
             <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">Email address</span>

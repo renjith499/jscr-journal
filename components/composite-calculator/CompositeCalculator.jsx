@@ -30,6 +30,7 @@ import {
 import { addMaterial } from "@/lib/material-models/library-store";
 import { MaterialDownloadGateModal } from "@/components/material-models/MaterialDownloadGateModal";
 import { MaterialReviewPromptModal } from "@/components/material-models/MaterialReviewPromptModal";
+import { getVerifiedDownloadUser, submitAuthenticatedDownloadUsage } from "@/lib/auth/download-usage";
 
 const EMAIL_SESSION_KEY = "material_models_captured_email";
 const REVIEW_SESSION_KEY = "material_models_review_shown";
@@ -541,7 +542,13 @@ export function CompositeCalculator() {
     sessionStorage.setItem(REVIEW_SESSION_KEY, "1");
     setTimeout(() => setShowReview(true), 500);
   };
-  const requireEmail = (action) => {
+  const requireEmail = async (action) => {
+    const user = await getVerifiedDownloadUser();
+    if (user) {
+      action();
+      void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Composite Property Calculator", download: "Composite export" });
+      return;
+    }
     if (capturedEmail) {
       action();
       maybeReview();
@@ -557,6 +564,12 @@ export function CompositeCalculator() {
     pendingDownload.current?.();
     pendingDownload.current = null;
     maybeReview();
+  };
+  const authenticatedDownload = (user) => {
+    setShowEmailGate(false);
+    pendingDownload.current?.();
+    pendingDownload.current = null;
+    void submitAuthenticatedDownloadUsage({ email: user.email, tool: "Composite Property Calculator", download: "Composite export" });
   };
   const saveToLibrary = () => {
     addMaterial(
@@ -973,6 +986,7 @@ export function CompositeCalculator() {
       </div>
       {showEmailGate && (
         <MaterialDownloadGateModal
+          onAuthenticated={authenticatedDownload}
           source="Composite Property Calculator"
           onSuccess={emailCaptured}
           onClose={() => {

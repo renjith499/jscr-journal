@@ -1,0 +1,40 @@
+name: Weekly Supabase backup
+
+on:
+  schedule:
+    - cron: "30 2 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - name: Check backup configuration
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "SUPABASE_DB_URL is not configured. Add it as a protected repository secret."
+            exit 1
+          fi
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+
+      - name: Export database
+        run: |
+          mkdir -p backup
+          pg_dump "$SUPABASE_DB_URL" --format=custom --no-owner --no-privileges --file="backup/jscr-supabase-$(date -u +%Y-%m-%d).dump"
+
+      - name: Upload private backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jscr-supabase-${{ github.run_id }}
+          path: backup/*.dump
+          retention-days: 30
+          if-no-files-found: error
