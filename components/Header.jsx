@@ -2,6 +2,7 @@
 
 import { BookOpen, Menu, Moon, Search, Sun, X } from "lucide-react";
 import Link from "next/link";
+import { AuthButton } from "./auth/AuthButton";
 
 export function Header({ darkMode, setDarkMode, open, setOpen }) {
   const items = [
@@ -38,6 +39,7 @@ export function Header({ darkMode, setDarkMode, open, setOpen }) {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <AuthButton />
           <a href="/#articles" className="rounded-md p-2.5 text-primary transition hover:bg-slate-100 hover:text-accent dark:text-slate-200 dark:hover:bg-slate-800" aria-label="Search">
             <Search size={20} />
           </a>
@@ -65,6 +67,7 @@ export function Header({ darkMode, setDarkMode, open, setOpen }) {
             <button onClick={() => setDarkMode(!darkMode)} className="flex items-center justify-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm font-semibold dark:border-slate-700">
               {darkMode ? <Sun size={18} /> : <Moon size={18} />} Theme
             </button>
+            <AuthButton mobile onNavigate={() => setOpen(false)} />
           </div>
         </div>
       )}
