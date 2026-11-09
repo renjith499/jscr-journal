@@ -2,7 +2,8 @@ import { Calculator, FileDown, LineChart, ShieldCheck } from "lucide-react";
 import { SteelStudio } from "@/components/steel-studio/SteelStudio";
 
 export const metadata = {
-  title: "Steel Calculator | JSCR",
+  title: "Abaqus Steel Material Calculator",
+  alternates: { canonical: "/tools/steel-calculator" },
   description: "Generate and validate Abaqus isotropic elastic-plastic steel material cards in the browser.",
 };
 

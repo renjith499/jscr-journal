@@ -3,7 +3,8 @@ import { ArrowRight, Atom, Boxes, Building2, Calculator } from "lucide-react";
 import { MaterialLibraryPanel } from "@/components/material-models/MaterialLibraryPanel";
 
 export const metadata = {
-  title: "Material Models | JSCR",
+  title: "Abaqus Material Model Calculators",
+  alternates: { canonical: "/tools/material-models" },
   description:
     "Generate CDP, steel and composite material definitions and combine saved materials into an Abaqus library.",
 };

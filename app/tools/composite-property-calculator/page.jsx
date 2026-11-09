@@ -2,7 +2,8 @@ import { Boxes, FileDown, ShieldCheck, Thermometer } from "lucide-react";
 import { CompositeCalculator } from "@/components/composite-calculator/CompositeCalculator";
 
 export const metadata = {
-  title: "Composite Property Calculator | JSCR",
+  title: "Composite Property Calculator",
+  alternates: { canonical: "/tools/composite-property-calculator" },
   description:
     "Estimate mechanical, strength and thermal properties of a unidirectional two-phase composite using transparent rule-of-mixtures equations.",
 };

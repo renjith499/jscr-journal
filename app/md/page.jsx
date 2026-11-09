@@ -1,7 +1,8 @@
 import { MarkdownBuilder } from "@/components/MarkdownBuilder";
 
 export const metadata = {
-  title: "Article File Builder | JSCR",
+  title: "Article File Builder",
+  robots: { index: false, follow: false },
   description: "Prepare structured JSCR article submission files.",
 };
 

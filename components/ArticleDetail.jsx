@@ -11,9 +11,27 @@ function formatDate(value) {
 
 export function ArticleDetail({ article, sourceStatus }) {
   const metricsSeed = Math.max(article.title.length, 10);
+  const canonicalUrl = `https://www.jscr.in/articles/${article.slug}`;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    headline: article.title,
+    description: article.abstract,
+    url: canonicalUrl,
+    mainEntityOfPage: canonicalUrl,
+    datePublished: article.date,
+    dateModified: article.lastUpdated || article.date,
+    author: article.authors?.map((name) => ({ "@type": "Person", name })),
+    keywords: article.keywords?.join(", "),
+    publisher: { "@id": "https://www.jscr.in/#organization" },
+    isPartOf: { "@type": "Periodical", name: "Journal of Scientific Computing & Research", issn: article.issn || undefined },
+    identifier: article.doi ? { "@type": "PropertyValue", propertyID: "DOI", value: article.doi } : undefined,
+    inLanguage: "en",
+  };
 
   return (
     <main className="bg-paper py-12 dark:bg-slate-950">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
       <div className="mx-auto grid max-w-7xl gap-8 px-5 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-8">
         <article className="rounded-lg border border-slate-200 bg-white p-6 shadow-soft dark:border-slate-700 dark:bg-slate-900 lg:p-9">
           <div className="mb-5 flex flex-wrap gap-2">

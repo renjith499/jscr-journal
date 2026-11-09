@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "Research Tools | JSCR",
+  title: "Engineering Research Tools",
+  alternates: { canonical: "/tools" },
   description:
     "Browser-based tools for extracting research data and preparing engineering models.",
 };

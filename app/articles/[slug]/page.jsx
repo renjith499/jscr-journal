@@ -17,12 +17,26 @@ export async function generateMetadata({ params }) {
   const article = result.ok ? result.article : fallbackArticles.find((item) => item.slug === slug);
 
   if (!article) {
-    return { title: "Article not found | JSCR" };
+    return { title: "Article not found", robots: { index: false, follow: false } };
   }
 
+  const canonical = `https://www.jscr.in/articles/${article.slug}`;
   return {
-    title: `${article.title} | JSCR`,
+    title: article.title,
     description: article.abstract,
+    alternates: { canonical },
+    openGraph: {
+      type: "article",
+      url: canonical,
+      title: article.title,
+      description: article.abstract,
+      publishedTime: article.date,
+      modifiedTime: article.lastUpdated || article.date,
+      authors: article.authors,
+      tags: article.keywords,
+      images: [{ url: article.thumbnail || "/opengraph-image", alt: article.title }],
+    },
+    twitter: { card: "summary_large_image", title: article.title, description: article.abstract, images: [article.thumbnail || "/twitter-image"] },
   };
 }
 

@@ -2,7 +2,8 @@ import { LineChart, Ruler, Table2 } from "lucide-react";
 import { GraphDigitizerApp } from "@/components/graph-digitizer/GraphDigitizerApp";
 
 export const metadata = {
-  title: "Graph Digitizer | JSCR",
+  title: "Online Graph Digitizer for Research Data",
+  alternates: { canonical: "/tools/graph-digitizer" },
   description: "Extract data points from published graph images directly in the browser — calibrate axes, digitize curves, and export to CSV or Excel.",
 };
 

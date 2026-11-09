@@ -1,7 +1,8 @@
 import { Brain, Calculator, ExternalLink, Footprints } from "lucide-react";
 
 export const metadata = {
-  title: "Mahi's Vault | JSCR",
+  title: "Mahi's Vault – Mathematics Learning Adventure",
+  alternates: { canonical: "/learn/mahis-vault" },
   description:
     "An educational mathematics and scientific-discovery adventure for young learners, combining arithmetic challenges with the history of calculation and engineering innovation.",
 };

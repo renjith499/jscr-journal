@@ -2,7 +2,8 @@ import { ClipboardCheck, FileCheck2, MailCheck } from "lucide-react";
 import { SubmitPaperForm } from "@/components/SubmitPaperForm";
 
 export const metadata = {
-  title: "Submit Paper | JSCR",
+  title: "Submit a Research Paper",
+  alternates: { canonical: "/submit-paper" },
   description: "Submit a scientific or engineering manuscript to JSCR.",
 };
 

@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ArrowRight, Gamepad2, GraduationCap, Sparkles } from "lucide-react";
 
 export const metadata = {
-  title: "Learning & Outreach | JSCR",
+  title: "Learning and Outreach",
+  alternates: { canonical: "/learn" },
   description:
     "Interactive lessons and educational activities that make mathematics, engineering, and scientific concepts approachable.",
 };
